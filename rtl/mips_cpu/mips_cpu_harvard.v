@@ -32,6 +32,8 @@ typedef enum logic[2:0] {
 	logic[31:0] pc, pc_next;
 	assign pc_next = pc + 1;
 	logic[31:0] instr;
+	assign instr_address = pc;
+
 
 // Reg Signals
  	logic[4:0] read_index_rs;
@@ -73,20 +75,27 @@ always @(posedge clk) begin
 	end
 	else if(clk_enable) begin
 		case(state)
-		FETCH: begin //Fetching Instruction
+		FETCH: begin //Fetching Instruction and Decode
 
+				instr <= instr_readdata;
+				state <= EXEC;
+				// get reg rt,rs and write_index
 			   end	
 		EXEC:		 //Reading Reg Values
                begin
 
+               state <= MEM_READ;
                end   				
 		MEM_READ:	// Reading/Writing to Memory
 				begin
 
+				state <= WRITE_BACK;
 				end
 		WRITE_BACK: // Reg/Memory to Reg (Increment PC here)
 				begin
-					pc <= pc_next;
+
+				state <= FETCH;
+				pc <= pc_next;
 				end
 		default: // do nothing
 	end
