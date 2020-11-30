@@ -23,8 +23,31 @@ typedef enum logic[1:0] {
 	EXEC = 2'b10
 	HALTED = 2'b11
 } state_t
-typedef enum logic[6:0] {
-	OP_R = 7'b0000000,
+typedef enum logic[5:0] {
+	OP_R = 6'b000000,
+	OP_BLTZ = 6'b000001,
+	OP_Jump = 6'b000010,
+	OP_JAL = 6'b000011,
+	OP_BEQ = 6'b000100,
+	OP_BNE = 6'b000101,
+	OP_BLEZ = 6'b000110,
+	OP_BGTZ = 6'b000111,
+	OP_ADDIU = 6'b001001,
+	OP_SLTI = 6'b001010,
+	OP_SLTIU = 6'b001011,
+	OP_ANDI = 6'b001100,
+	OP_ORI = 6'b001101,
+	OP_XORI = 6'b001110,
+	OP_LUI = 6'b001111,
+	OP_LB = 6'b100000,
+	OP_LH = 6'b100001,
+	OP_LW = 6'b100011,
+	OP_LBU = 6'b100100,
+	OP_LHU = 6'b100101,
+	OP_SB = 6'b101000,
+	OP_SH = 6'b101001,
+	OP_SW = 6'b101011,
+	
 
 } opcode_t
 
