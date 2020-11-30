@@ -26,7 +26,7 @@ typedef enum logic[1:0] {
 typedef enum logic[5:0] {
 	OP_R = 6'b000000,
 	OP_BLTZ = 6'b000001,
-	OP_Jump = 6'b000010,
+	OP_JUMP = 6'b000010,
 	OP_JAL = 6'b000011,
 	OP_BEQ = 6'b000100,
 	OP_BNE = 6'b000101,
@@ -47,7 +47,7 @@ typedef enum logic[5:0] {
 	OP_SB = 6'b101000,
 	OP_SH = 6'b101001,
 	OP_SW = 6'b101011,
-	
+
 
 } opcode_t
 
@@ -133,22 +133,22 @@ always @(posedge clk) begin
                //Get memory address 
                
                case(opcode)
-               		O_Jump:	 begin
+               		O_JUMP:	 begin
                				 Branch_Addr <= pc + 4*instr[25:0] + 4;
                				 Jump <= 1;
                				 end
-               		O_Addiu: begin
+               		O_ADDIU: begin
                				 AluOp <= 0; //Implement AluOp
                				 write_on_next <= 1;
                				 end
-               		O_Lw: begin
+               		O_LW: begin
                			  data_address <= 4*(read_data_rs + instr[15:0]);
                			  data_read <= 1;
                			  data_write <= 0;
                			  write_on_next <= 1;
                			  mem_reg_select <= 0;
                			  end
-               		O_Sw: begin
+               		O_SW: begin
                			  data_address <= 4*(read_data_rs + instr[15:0]);
                			  data_writedata <= read_data_rt;
                			  data_write <= 1;
