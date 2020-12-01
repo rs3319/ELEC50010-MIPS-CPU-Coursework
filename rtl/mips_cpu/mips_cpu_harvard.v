@@ -23,7 +23,7 @@ typedef enum logic[1:0] {
 	EXEC = 2'b10
 	HALTED = 2'b11
 } state_t
-typedef enum logic[5:0] {
+typedef enum logic[5:0] { // add r-type instructions
 	OP_R = 6'b000000,
 	OP_BLTZ = 6'b000001,
 	OP_JUMP = 6'b000010,
@@ -49,10 +49,11 @@ typedef enum logic[5:0] {
 	OP_SB = 6'b101000,
 	OP_SH = 6'b101001,
 	OP_SW = 6'b101011,
-
-
 } opcode_t
 
+typedef enum logic[5:0]{
+	// add identifiers for alu functions
+}
 
 
 	logic[2:0] state;
@@ -61,6 +62,7 @@ typedef enum logic[5:0] {
 	logic[31:0] instr;
 	assign instr_address = pc;
 	logic[5:0] opcode;
+	assign opcode = instr[31:27];
 
 // Reg Signals
  	logic[4:0] read_index_rs;
@@ -71,6 +73,9 @@ typedef enum logic[5:0] {
  	logic write_on_next;
 	logic write_enable;
 	logic[31:0] write_data;
+	logic carryReg;
+	logic carryNext;
+
 
 // Intermediate Reg Signals
 	logic[4:0] Rt;
@@ -79,12 +84,17 @@ typedef enum logic[5:0] {
 
 // ALU Signals
 	logic[5:0] AluOP;
-	logic AluSrc;
+	assign AluOp = instr[5:0];
 	logic[31:0] Alu_A;
 	assign Alu_A = read_data_rs;
 	logic[31:0] Alu_B;
-	assign Alu_B = AluSrc ? instr[15:0] : read_data_rt;
+	assign Alu_B = read_data_rt;
+	logic[15:0] Alu_Immediate;
+	assign Alu_Immediate = instr[15:0];
+	logic[4:0] Alu_Shamt;
+	assign Alu_Shamt = instr[10:6];
 	logic[31:0] Alu_Out;
+	logic ZF;
 
 // Reg Write Back Multiplexer
 	logic Mem_Reg_Select;
@@ -116,18 +126,16 @@ always @(posedge clk) begin
 				instr <= instr_readdata;
 				data_read <= 0;
                	data_write <= 0;
+               	write_on_next <= 0;
 				read_index_rs <= instr_readdata[25:21];
 				read_index_rt <= instr_readdata[20:16];
 				if(instr_readdata[31:26] == 6'b000000) begin
 					write_index <= instr_readdata[15:11];
-					AluSrc <= 1;
 				end
 				else begin
-					AluSrc <= 0;
 					write_index <= instr_readdata[20:16];
 				end
 
-				 //Get ALUOp
 				state <= EXEC;
 			   end	
 		DECODE: // Read from Memory (1 cycle delay needed to evaluate Rs before hand)
@@ -139,10 +147,22 @@ always @(posedge clk) begin
                				 Branch_Addr <= pc + 4*instr[25:0] + 4;
                				 Jump <= 1;
                				 end
-               		O_ADDIU: begin
-               				 AluOp <= 0; //Implement AluOp
-               				 write_on_next <= 1;
-               				 end
+               		O_R: begin
+               		case(AluOP) begin
+               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU:
+               			begin
+               				mem_reg_select <= 1;
+               		 		write_on_next <= 1;
+               		 	end
+               		 F_BEQ, F_BNE:
+               		 		write_on_next <= 0;
+               		 end
+               		end
+               		O_ADDIU, O_ANDI, O_LUI, O_ORI, O_SLTI, O_SLTIU:
+               			begin
+               				mem_reg_select <= 1;
+               		 		write_on_next <= 1;
+               		 	end
                		O_LW: begin
                			  data_address <= 4*(read_data_rs + instr[15:0]);
                			  data_read <= 1;
@@ -161,6 +181,7 @@ always @(posedge clk) begin
                state <= EXEC;
                end   				
 		EXEC: // Write to Reg/Memory (Increment PC here)
+				carryReg <= carryNext;
 				begin
 				// Memory/Reg -> Reg
 				if(!mem_reg_select) begin
@@ -195,3 +216,9 @@ always @(posedge clk) begin
 		default: // do nothing
 	end
 end
+
+mips_cpu_ALU ALU(ALUOp,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,Branch,ALU_Out,carryNext,ZF);
+
+
+
+endmodule

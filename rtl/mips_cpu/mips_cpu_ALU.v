@@ -1,15 +1,15 @@
 module ALU_32bit(
 	
-	input logic[5:0] ALU_control, opcode;
-	input logic[4:0] shamt; // for shift
-	input logic[15:0] immediate;
-	input logic[31:0] rs_content, rt_content; //inputs
-    input logic carry_in; //need this?
+	input logic[5:0] ALU_control, opcode,
+	input logic[4:0] shamt, // for shift
+	input logic[15:0] immediate,
+	input logic[31:0] rs_content, rt_content, //inputs
+    input logic carry_in, //need this?
 	
-	
-	output logic[31:0] ALU_result; //ALU outpu
-    output logic carry_out; //need this?
-    output logic zero;
+	output logic sig_branch, 
+	output logic[31:0] ALU_result, //ALU outpu
+    output logic carry_out, //need this?
+    output logic zero
 );	
 
 	integer i; //for loop
