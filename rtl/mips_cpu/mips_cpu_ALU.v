@@ -33,6 +33,9 @@ module ALU_32bit(
 					
 				6'h25 : //or
 					ALU_result = rs_content | rt_content;
+				
+				6'h26 : //xor
+					ALU_result = rs_content ^ rt_content;
 					
 				6'h03 : //sra
 					begin
@@ -76,7 +79,7 @@ module ALU_32bit(
 				6'h9 : // addiu
 					ALU_result = rs_content + zeroExtend;
 					
-				6'b010010 : // andi
+				6'b001000 : // andi
 					ALU_result = rs_content & signExtend;
 					
 				6'h4 : // beq
@@ -104,11 +107,14 @@ module ALU_32bit(
 						end
 					end
 				
-				6'b010101 : // lui
+				6'b001111 : // lui
 					ALU_result = {immediate, {16{1'b0}};
 				
-				6'b010011 : // ori
+				6'b001101 : // ori
 					ALU_result = rs_content | zeroExtend;
+
+				6'b001110 : // xori
+					ALU_result = rs_content ^ zeroExtend;
 				
 				6'b001010 : // slti
 					begin
