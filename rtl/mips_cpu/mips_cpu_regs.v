@@ -10,7 +10,8 @@ module register(
     
     input logic[4:0] write_index,
     input logic write_enable,
-    input logic[31:0] write_data
+    input logic[31:0] write_data,
+    output logic[31:0] reg_v0
 );
 
     logic[31:0] regs[31:0];
@@ -50,6 +51,7 @@ module register(
     assign reg_30 = regs[30];
     assign reg_31 = regs[31];
     
+    assign reg_v0 = reg_2;
     assign read_data_rs = reset==1 ? 0 : regs[read_index_rs];
     assign read_data_rt = reset==1 ? 0 : regs[read_index_rt];
     

@@ -20,7 +20,7 @@ module mips_cpu_harvard(
 typedef enum logic[1:0] {
 	FETCH = 2'b00,
 	DECODE = 2'b01,
-	EXEC = 2'b10
+	EXEC = 2'b10,
 	HALTED = 2'b11
 } state_t
 typedef enum logic[5:0] { // add r-type instructions
@@ -48,15 +48,41 @@ typedef enum logic[5:0] { // add r-type instructions
 	OP_LWR = 6'b100110,
 	OP_SB = 6'b101000,
 	OP_SH = 6'b101001,
-	OP_SW = 6'b101011,
+	OP_SW = 6'b101011
 } opcode_t
 
 typedef enum logic[5:0]{
 	// add identifiers for alu functions
-}
+	F_SLL = 6'b000000,
+	F_SRL = 6'b000001,
+	F_SRA = 6'b000011,
+	F_SLLV = 6'b000100,
+	F_SRLV = 6'b000110,
+	F_SRAV = 6'b000111,
+	F_JR = 6'b001000,
+	F_JALR = 6'b001001,
+	F_MFHI = 6'b010000,
+	F_MTHI = 6'b010001,
+	F_MFLO = 6'b010010,
+	F_MTLO = 6'b010011,
+	F_MULT = 6'b011000,
+	F_MULTU = 6'b011001,
+	F_DIV = 6'b011010,
+	F_DIVU = 6'b011011,
+	F_ADD = 6'b100000,
+	F_ADDU = 6'b100001,
+	F_SUB = 6'b100010,
+	F_SUBU = 6'b100011,
+	F_AND = 6'b100100,
+	F_OR = 6'b100101,
+	F_XOR = 6'b100110,
+	F_NOR = 6'b100111,
+	F_SLT = 6'b101010,
+	F_SLTU = 6'101011
+} AluOP_t
 
 
-	logic[2:0] state;
+	logic[1:0] state;
 	logic[31:0] pc, pc_next;
 	assign pc_next = pc + 4;
 	logic[31:0] instr;
@@ -144,19 +170,29 @@ always @(posedge clk) begin
                
                case(opcode)
                		O_JUMP:	 begin
-               				 Branch_Addr <= pc + 4*instr[25:0] + 4;
+               				 Branch_Addr <= {(pc+4)[31:28],instr[25:0]*4};
                				 Jump <= 1;
                				 end
                		O_R: begin
-               		case(AluOP) begin
-               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU:
-               			begin
-               				mem_reg_select <= 1;
-               		 		write_on_next <= 1;
-               		 	end
-               		 F_BEQ, F_BNE:
-               		 		write_on_next <= 0;
-               		 end
+	               		case(AluOP) begin
+	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU:
+	               			begin
+	               				mem_reg_select <= 1;
+	               		 		write_on_next <= 1;
+	               		 	end
+	               		 F_BEQ, F_BNE: write_on_next <= 0;
+	               		
+	               		 F_JR: begin
+	               		 		Branch_Addr <= read_data_rs;
+	               		 		Jump <= 1;
+	               		 		end
+	               		 F_JALR:
+	               		 		begin
+	               		 			data_writedata <= pc_next + 4;
+	               		 			Jump <= 1;
+	               		 			Branch_Addr <= read_data_rs;
+	               		 		end
+	               		end
                		end
                		O_ADDIU, O_ANDI, O_LUI, O_ORI, O_SLTI, O_SLTIU:
                			begin
@@ -218,7 +254,7 @@ always @(posedge clk) begin
 end
 
 mips_cpu_ALU ALU(ALUOp,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,Branch,ALU_Out,carryNext,ZF);
-
+mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,write_enable,write_data,register_v0);
 
 
 endmodule
