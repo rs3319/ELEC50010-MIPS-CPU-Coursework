@@ -2,7 +2,7 @@
 
 DIRECTORY = "$1"
 TestInstr = "$2"
-if [$2 -n STRING]
+if [$2 -n STRING];
 	then
 	TC = "testCases/assembly/${TestInstr}*.hex.txt"
 	else
