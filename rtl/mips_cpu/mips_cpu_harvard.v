@@ -169,11 +169,11 @@ always @(posedge clk) begin
                //Get memory address 
                
                case(opcode)
-               		O_JUMP:	 begin
+               		OP_JUMP:	 begin
                				 Branch_Addr <= {(pc+4)[31:28],instr[25:0]*4};
                				 Jump <= 1;
                				 end
-               		O_R: begin
+               		OP_R: begin
 	               		case(AluOP) begin
 	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU:
 	               			begin
@@ -194,19 +194,19 @@ always @(posedge clk) begin
 	               		 		end
 	               		end
                		end
-               		O_ADDIU, O_ANDI, O_LUI, O_ORI, O_SLTI, O_SLTIU:
+               		OP_ADDIU, OP_ANDI, OP_LUI, OP_ORI, OP_SLTI, OP_SLTIU:
                			begin
                				mem_reg_select <= 1;
                		 		write_on_next <= 1;
                		 	end
-               		O_LW: begin
+               		OP_LW: begin
                			  data_address <= 4*(read_data_rs + instr[15:0]);
                			  data_read <= 1;
                			  data_write <= 0;
                			  write_on_next <= 1;
                			  mem_reg_select <= 0;
                			  end
-               		O_SW: begin
+               		OP_SW: begin
                			  data_address <= 4*(read_data_rs + instr[15:0]);
                			  data_writedata <= read_data_rt;
                			  data_write <= 1;
