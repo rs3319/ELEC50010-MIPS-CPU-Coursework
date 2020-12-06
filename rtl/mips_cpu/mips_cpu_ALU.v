@@ -1,19 +1,21 @@
-module ALU_32bit(
+module mips_cpu_ALU(
 	
-	input logic[5:0] ALU_control, opcode,
-	input logic[4:0] shamt, // for shift
+	input logic[5:0] ALU_control,
+	input logic[5:0] opcode,
+	input logic[4:0] shamt, 
 	input logic[15:0] immediate,
-	input logic[31:0] rs_content, rt_content, //inputs
-    input logic carry_in, //need this?
+	input logic[31:0] rs_content, 
+	input logic[31:0] rt_content, 
+    input logic carry_in, 
 	
 	output logic sig_branch, 
-	output logic[31:0] ALU_result, //ALU outpu
-    output logic carry_out, //need this?
+	output logic[31:0] ALU_result, 
+    output logic carry_out, 
     output logic zero
 );	
 
-	integer i; //for loop
-	logic[31:0] temp; //sra command? 
+	integer i; 
+	logic[31:0] temp; 
 
 	always_comb begin		
 			

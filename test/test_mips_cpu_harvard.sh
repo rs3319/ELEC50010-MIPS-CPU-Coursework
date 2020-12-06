@@ -1,16 +1,16 @@
 #!/bin/bash
 
-DIRECTORY = "$1"
-TestInstr = "$2"
-if [$2 -n STRING];
+DIRECTORY="$1"
+TestInstr="$2"
+if [${TestInstr} -n STRING] 
 	then
-	TC = "testCases/assembly/${TestInstr}*.hex.txt"
-	else
-	TC = "testCases/assembly/*.hex.txt"	
+	TC="testCases/assembly/${TestInstr}*.hex.txt"
+else
+	TC="testCases/assembly/*.hex.txt"	
 fi
 
 for i in ${TC} ; do
 
-	./test_mips_cpu_harvard_one ${DIRECTORY} ${TC} ${TestInstr}
+	test/test_mips_cpu_harvard_one.sh ${DIRECTORY} ${TC} ${TestInstr}
 
 done

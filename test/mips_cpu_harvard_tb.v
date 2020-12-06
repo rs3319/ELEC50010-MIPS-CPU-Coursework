@@ -50,10 +50,11 @@ module mips_cpu_harvard_tb;
 		 @(posedge clk);
 		end
 
-		@display("Finished Running");
+		$display("Finished Running");
 		$readmemh(REF_FILE, OUTPUT);
 		if(OUTPUT != register_v0) begin
-			$fatal(1,"Reference Outputs do not match Testbench Output: ", register_v0)
+			$fatal(1,"Reference Outputs do not match Testbench Output: ", register_v0);
+		end
 		$finish;
 	end
 

@@ -1,11 +1,11 @@
-module Instruction_Memory(
+module mips_cpu_iMemory(
 	input logic[31:0] address,
 	output logic[31:0] readdata
 );
 
 	parameter MEM_INIT_FILE = "";
 
-	reg[31:0] memory [4294967295:0];
+	reg[31:0] memory[4294967295:0];
 
 	inital begin
 		integer i;
@@ -14,7 +14,7 @@ module Instruction_Memory(
 		end
 
 		if (MEM_INIT_FILE != "") begin
-			$readmemh(MEM_INIT_FILE, memory);
+			$readmemh(MEM_INIT_FILE, memory, 32'hBCF00000);
 		end
 	end
 

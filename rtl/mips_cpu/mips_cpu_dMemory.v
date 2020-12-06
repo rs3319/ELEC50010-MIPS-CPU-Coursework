@@ -1,4 +1,4 @@
-module Data_Memory(
+module mips_cpu_dMemory(
 	input logic clk,
 	input logic[31:0] address,
 	input logic write,

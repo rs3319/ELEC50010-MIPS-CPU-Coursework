@@ -22,8 +22,8 @@ typedef enum logic[1:0] {
 	DECODE = 2'b01,
 	EXEC = 2'b10,
 	HALTED = 2'b11
-} state_t
-typedef enum logic[5:0] { // add r-type instructions
+} state_t;
+typedef enum logic[5:0] { 
 	OP_R = 6'b000000,
 	OP_BLTZ = 6'b000001,
 	OP_JUMP = 6'b000010,
@@ -49,7 +49,7 @@ typedef enum logic[5:0] { // add r-type instructions
 	OP_SB = 6'b101000,
 	OP_SH = 6'b101001,
 	OP_SW = 6'b101011
-} opcode_t
+} opcode_t;
 
 typedef enum logic[5:0]{
 	// add identifiers for alu functions
@@ -78,8 +78,8 @@ typedef enum logic[5:0]{
 	F_XOR = 6'b100110,
 	F_NOR = 6'b100111,
 	F_SLT = 6'b101010,
-	F_SLTU = 6'101011
-} AluOP_t
+	F_SLTU = 6'b101011
+} AluOP_t;
 
 
 	logic[1:0] state;
@@ -174,19 +174,18 @@ always @(posedge clk) begin
                //Get memory address 
                
                case(opcode)
-               		OP_JUMP:	 begin
-               				 Branch_Addr <= {(pc+4)[31:28],instr[25:0]*4};
+               		OP_JUMP: begin
+               				 Branch_Addr <= {pc_next[31:28],instr[25:0]*4};
                				 Jump <= 1;
                				 end
                		OP_R: begin
-	               		case(AluOP) begin
-	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU:
-	               			begin
+	               		case(AluOP) 
+	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU: begin
 	               				mem_reg_select <= 1;
 	               		 		write_on_next <= 1;
 	               		 	end
 	               		 F_BEQ, F_BNE: write_on_next <= 0;
-	               		
+	   
 	               		 F_JR: begin
 	               		 		Branch_Addr <= read_data_rs;
 	               		 		Jump <= 1;
@@ -197,7 +196,7 @@ always @(posedge clk) begin
 	               		 			Jump <= 1;
 	               		 			Branch_Addr <= read_data_rs;
 	               		 		end
-	               		end
+	               		endcase
                		end
                		OP_ADDIU, OP_ANDI, OP_LUI, OP_ORI, OP_SLTI, OP_SLTIU:
                			begin
@@ -217,7 +216,7 @@ always @(posedge clk) begin
                			  data_write <= 1;
                			  data_read <= 0;
                			  end
-               		
+               endcase		
                		state <= EXEC;
                end   				
 		EXEC: // Write to Reg/Memory (Increment PC here)
@@ -254,7 +253,7 @@ always @(posedge clk) begin
 				end
 				state <= FETCH;
 				end
-		default: // do nothing
+	end
 	end
 end
 
