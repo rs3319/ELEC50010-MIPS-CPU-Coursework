@@ -136,13 +136,13 @@ typedef enum logic[5:0]{
 
 initial begin
 	state = HALTED;
-	running = 0;
+	active = 0;
 end
 
 always @(posedge clk) begin
 	if (rst) begin
 		// reset code, change state to FETCH
-		pc <= 0;
+		pc <= 32'hBFC00000;
 		state <= FETCH;
 	end
 	else if(clk_enable) begin
@@ -161,8 +161,13 @@ always @(posedge clk) begin
 				else begin
 					write_index <= instr_readdata[20:16];
 				end
-
-				state <= EXEC;
+				if(pc == 0) begin
+					active <= 0;
+					state <= HALTED;
+				end
+				else begin
+					state <= EXEC;
+				end
 			   end	
 		DECODE: // Read from Memory (1 cycle delay needed to evaluate Rs before hand)
                begin
@@ -212,13 +217,13 @@ always @(posedge clk) begin
                			  data_write <= 1;
                			  data_read <= 0;
                			  end
-
-
-               state <= EXEC;
+               		
+               		state <= EXEC;
                end   				
 		EXEC: // Write to Reg/Memory (Increment PC here)
-				carryReg <= carryNext;
 				begin
+
+				carryReg <= carryNext;
 				// Memory/Reg -> Reg
 				if(!mem_reg_select) begin
 					write_data <= data_readdata;
