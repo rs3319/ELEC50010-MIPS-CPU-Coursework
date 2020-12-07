@@ -9,11 +9,11 @@ module mips_cpu_dMemory(
 
 	parameter MEM_INIT_FILE = "";
 
-	reg[31:0] memory [4294967295:0];
+	reg[31:0] memory [1073741823:0];
 
-	inital begin
-		integer i;
-		for (i = 0;i<4294967296;i++) begin
+	initial begin
+		real i;
+		for (i = 0;i<1073741824;i++) begin
 			memory[i] = 0;
 		end
 
