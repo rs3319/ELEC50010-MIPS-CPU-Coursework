@@ -9,13 +9,9 @@ module mips_cpu_dMemory(
 
 
 
-	reg[7:0] memory [536870911:0];
+	reg[7:0] memory [100:0];
 
 	initial begin
-		integer i;
-		for (i = 0;i<536870912;i++) begin
-			memory[i] = 0;
-		end
 
 	end
 
