@@ -6,12 +6,12 @@ module mips_cpu_iMemory(
 	parameter MEM_INIT_FILE = "";
 
 
-	reg[7:0] memory [536870911:0];
+	logic[7:0] memory [4294967296:0];
 
 	initial begin
 
 		if (MEM_INIT_FILE != "") begin
-			$readmemh(MEM_INIT_FILE, memory, $unsigned(32'h179E0000),$unsigned(32'h1FFFFFFF));
+			$readmemh(MEM_INIT_FILE, memory, $unsigned(32'hBCF00000),$unsigned(32'hFFFFFFFF));
 		end
 	end
 
