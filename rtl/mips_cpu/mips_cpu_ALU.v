@@ -16,11 +16,11 @@ module mips_cpu_ALU(
 
 	integer i; 
 	logic[31:0] temp;
-	logic[32:0] signExtend;
-	logic[32:0] zeroExtend; 
+	logic[31:0] signExtend;
+	logic[31:0] zeroExtend; 
 
 	always@(*) begin		
-			
+		
 		// R-type instructions
 		if(opcode == 6'h0) begin
 			

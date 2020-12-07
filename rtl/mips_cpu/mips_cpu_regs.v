@@ -1,4 +1,4 @@
-module register(
+module mips_cpu_regs(
     
     input logic clk,
     input logic reset,

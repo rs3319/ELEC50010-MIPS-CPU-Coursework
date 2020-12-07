@@ -110,7 +110,7 @@ typedef enum logic[5:0]{
 
 // ALU Signals
 	logic[5:0] AluOP;
-	assign AluOp = instr[5:0];
+	assign AluOP = instr[5:0];
 	logic[31:0] Alu_A;
 	assign Alu_A = read_data_rs;
 	logic[31:0] Alu_B;
@@ -128,11 +128,12 @@ typedef enum logic[5:0]{
 
 // Conditional Branches
 	logic Branch;
+	logic sig_Branch;
 	logic Jump;	// flag for jumping, set to 1 on the branch instruction but only check the logic after the next instruction (for the delay slot)
 	logic jump_on_next;
 	logic[31:0] Branch_Addr; // Store branch address for delay slot, branch after next instruction is complete
 	logic[31:0] Link_Addr;
-
+	logic delay_slot;
 
 initial begin
 	state = HALTED;
@@ -140,11 +141,11 @@ initial begin
 end
 
 always @(posedge clk) begin
-	if (rst) begin
+	if (reset) begin
 		// reset code, change state to FETCH
 		pc <= 32'hBFC00000;
 		state <= FETCH;
-	end
+	    end
 	else if(clk_enable) begin
 		case(state)
 		FETCH: begin //Fetching Instruction and Decode
@@ -168,23 +169,23 @@ always @(posedge clk) begin
 				else begin
 					state <= EXEC;
 				end
-			   end	
+			  	end	
 		DECODE: // Read from Memory (1 cycle delay needed to evaluate Rs before hand)
                begin
                //Get memory address 
                
                case(opcode)
                		OP_JUMP: begin
-               				 Branch_Addr <= {pc_next[31:28],instr[25:0]*4};
+               				 Branch_Addr <= {pc_next[31:28],instr[25:0]<<2};
                				 Jump <= 1;
                				 end
                		OP_R: begin
 	               		case(AluOP) 
 	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU: begin
-	               				mem_reg_select <= 1;
+	               				Mem_Reg_Select <= 1;
 	               		 		write_on_next <= 1;
 	               		 	end
-	               		 F_BEQ, F_BNE: write_on_next <= 0;
+	               		
 	   
 	               		 F_JR: begin
 	               		 		Branch_Addr <= read_data_rs;
@@ -200,7 +201,7 @@ always @(posedge clk) begin
                		end
                		OP_ADDIU, OP_ANDI, OP_LUI, OP_ORI, OP_SLTI, OP_SLTIU:
                			begin
-               				mem_reg_select <= 1;
+               				Mem_Reg_Select <= 1;
                		 		write_on_next <= 1;
                		 	end
                		OP_LW: begin
@@ -208,7 +209,7 @@ always @(posedge clk) begin
                			  data_read <= 1;
                			  data_write <= 0;
                			  write_on_next <= 1;
-               			  mem_reg_select <= 0;
+               			  Mem_Reg_Select <= 0;
                			  end
                		OP_SW: begin
                			  data_address <= 4*(read_data_rs + instr[15:0]);
@@ -216,15 +217,19 @@ always @(posedge clk) begin
                			  data_write <= 1;
                			  data_read <= 0;
                			  end
+               		OP_BEQ, OP_BNE: begin
+               			write_on_next <= 0;
+               			Branch <= sig_Branch;
+               		end 
                endcase		
                		state <= EXEC;
                end   				
 		EXEC: // Write to Reg/Memory (Increment PC here)
-				begin
+			begin
 
 				carryReg <= carryNext;
 				// Memory/Reg -> Reg
-				if(!mem_reg_select) begin
+				if(!Mem_Reg_Select) begin
 					write_data <= data_readdata;
 				end
 				else begin
@@ -240,8 +245,8 @@ always @(posedge clk) begin
 				end
 				if(delay_slot) begin
 					pc <= Branch_Addr;
+					Jump <=0;
 					Branch <= 0;
-					Jump <= 0;
 					delay_slot <= 0;
 				end
 				else if(Branch | Jump) begin
@@ -252,12 +257,14 @@ always @(posedge clk) begin
 					pc <= pc_next;
 				end
 				state <= FETCH;
-				end
-	end
-	end
-end
+			end
+		endcase
 
-mips_cpu_ALU ALU(ALUOp,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,Branch,ALU_Out,carryNext,ZF);
+		end
+	end 
+
+
+mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,sig_Branch,Alu_Out,carryNext,ZF);
 mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,write_enable,write_data,register_v0);
 
 

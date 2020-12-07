@@ -2,11 +2,11 @@
 
 DIRECTORY="$1"
 TestInstr="$2"
-if [${TestInstr} -n STRING] 
+if [${TestInstr} -n STRING] ]
 	then
-	TC="testCases/assembly/${TestInstr}*.hex.txt"
+	TC="test/Assembly/${TestInstr}*.hex.txt"
 else
-	TC="testCases/assembly/*.hex.txt"	
+	TC="test/Assembly/*.hex.txt"	
 fi
 
 for i in ${TC} ; do
