@@ -7,11 +7,12 @@ module mips_cpu_iMemory(
 
 	reg[31:0] memory[4294967295:0];
 
-	inital begin
+	initial begin
 		integer i;
 		for (i = 0;i<4294967296;i++) begin
 			memory[i] = 0;
 		end
+
 
 		if (MEM_INIT_FILE != "") begin
 			$readmemh(MEM_INIT_FILE, memory, 32'hBCF00000);
