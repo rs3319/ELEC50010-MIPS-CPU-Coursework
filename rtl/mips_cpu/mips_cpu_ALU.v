@@ -15,9 +15,11 @@ module mips_cpu_ALU(
 );	
 
 	integer i; 
-	logic[31:0] temp; 
+	logic[31:0] temp;
+	logic[32:0] signExtend;
+	logic[32:0] zeroExtend; 
 
-	always_comb begin		
+	always@(*) begin		
 			
 		// R-type instructions
 		if(opcode == 6'h0) begin
@@ -43,7 +45,7 @@ module mips_cpu_ALU(
 					begin
 						temp = rt_content;
 						for(i = 0; i < shamt; i = i + 1) begin
-							temp = (temp[31],temp[31:1]); //add the lsb for msb
+							temp = {temp[31],temp[31:1]}; //add the lsb for msb
 						end
 					
 					ALU_result = temp;
@@ -64,8 +66,7 @@ module mips_cpu_ALU(
 							ALU_result = 0;
 						end
 					end
-					
-					end	
+						
 			endcase //case
 			
 		end // if		
@@ -110,7 +111,7 @@ module mips_cpu_ALU(
 					end
 				
 				6'b001111 : // lui
-					ALU_result = {immediate, {16{1'b0}};
+					ALU_result = {immediate, {16{1'b0}}};
 				
 				6'b001101 : // ori
 					ALU_result = rs_content | zeroExtend;
