@@ -144,12 +144,14 @@ always @(posedge clk) begin
 	if (reset) begin
 		// reset code, change state to FETCH
 		pc <= 32'hBFC00000;
+		active <= 1;
 		state <= FETCH;
 	    end
 	else if(clk_enable) begin
 		case(state)
 		FETCH: begin //Fetching Instruction and Decode
 				//Reading Reg Values
+				$monitor("Fetching : opcode: %6b",opcode);
 				instr <= instr_readdata;
 				data_read <= 0;
                	data_write <= 0;

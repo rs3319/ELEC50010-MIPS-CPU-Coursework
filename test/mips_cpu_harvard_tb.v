@@ -17,7 +17,8 @@ module mips_cpu_harvard_tb;
 	logic[31:0] data_writedata;
 	logic[31:0] instr_readdata;
 	logic[31:0] data_readdata;
-
+	integer data_file;
+	integer scan_file;
 	mips_cpu_iMemory #(RAM_INIT_FILE) iMemory(instr_address,instr_readdata);
 	mips_cpu_dMemory dMemory(clk,data_address,data_write,data_read,data_writedata,data_readdata);
 	mips_cpu_harvard harvardCpu(clk,rst,active,register_v0,clk_enable,instr_address,instr_readdata,data_address,data_write,data_read,data_writedata,data_readdata);
@@ -36,7 +37,7 @@ module mips_cpu_harvard_tb;
 
 	initial begin
 		rst <= 0;
-
+		clk_enable <= 1;
 		@(posedge clk);
 		rst <= 1;
 		@(posedge clk);
@@ -51,8 +52,8 @@ module mips_cpu_harvard_tb;
 		end
 
 		$display("Finished Running");
-		$readmemh(REF_FILE, OUTPUT);
-		if(OUTPUT != register_v0) begin
+		//scan_file = $fscanf(REF_FILE, "%d\n", OUTPUT);
+		if(register_v0 != 0) begin
 			$fatal(1,"Reference Outputs do not match Testbench Output: ", register_v0);
 		end
 		$finish;

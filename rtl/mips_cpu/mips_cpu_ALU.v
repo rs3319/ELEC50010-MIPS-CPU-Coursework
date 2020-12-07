@@ -145,8 +145,7 @@ module mips_cpu_ALU(
 	
 	
 	initial begin
-		$monitor("opcode: %6b, Rs content: %32b, rt content: %32b, signExtendImm = %32b, result: %32b\n",
-		opcode, rs_content, rt_content, signExtend, ALU_result);
+		
 	end
 	
 endmodule
