@@ -88,7 +88,7 @@ typedef enum logic[5:0]{
 	logic[31:0] instr;
 	assign instr_address = pc;
 	logic[5:0] opcode;
-	assign opcode = instr[31:27];
+	assign opcode = instr[31:26];
 
 // Reg Signals
  	logic[4:0] read_index_rs;
@@ -151,7 +151,7 @@ always @(posedge clk) begin
 		case(state)
 		FETCH: begin //Fetching Instruction and Decode
 				//Reading Reg Values
-				$monitor("Fetching : opcode: %6b",opcode);
+				$monitor("Fetching : Opcode: %6b, Instr Address : %32h",opcode,instr_address);
 				instr <= instr_readdata;
 				data_read <= 0;
                	data_write <= 0;
@@ -169,20 +169,21 @@ always @(posedge clk) begin
 					state <= HALTED;
 				end
 				else begin
-					state <= EXEC;
+					state <= DECODE;
 				end
 			  	end	
 		DECODE: // Read from Memory (1 cycle delay needed to evaluate Rs before hand)
                begin
                //Get memory address 
-               
                case(opcode)
                		OP_JUMP: begin
                				 Branch_Addr <= {pc_next[31:28],instr[25:0]<<2};
                				 Jump <= 1;
                				 end
                		OP_R: begin
+               			$monitor("R type: %6b",AluOP);
 	               		case(AluOP) 
+	               		
 	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU: begin
 	               				Mem_Reg_Select <= 1;
 	               		 		write_on_next <= 1;
@@ -228,7 +229,7 @@ always @(posedge clk) begin
                end   				
 		EXEC: // Write to Reg/Memory (Increment PC here)
 			begin
-
+				//$monitor("3 : Instruction: %32h, Instr Address : %32h",instr_readdata,instr_address);
 				carryReg <= carryNext;
 				// Memory/Reg -> Reg
 				if(!Mem_Reg_Select) begin

@@ -2,7 +2,7 @@ module mips_cpu_harvard_tb;
 	timeunit 1ns / 10ps;
 
 	parameter RAM_INIT_FILE = "";
-	parameter TIMEOUT_CYCLES = 1000;
+	parameter TIMEOUT_CYCLES = 100;
 	parameter REF_FILE = "";
 	logic OUTPUT;
 	logic clk;
@@ -49,8 +49,9 @@ module mips_cpu_harvard_tb;
 
 		while(active) begin
 		 @(posedge clk);
+		 //$display("instr_address : %32h, instr_readdata : %32h",instr_address,instr_readdata);
 		end
-
+		$display("Register V0: ",register_v0);
 		$display("Finished Running");
 		//scan_file = $fscanf(REF_FILE, "%d\n", OUTPUT);
 		if(register_v0 != 0) begin
