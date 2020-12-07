@@ -88,7 +88,7 @@ typedef enum logic[5:0]{
 	logic[31:0] instr;
 	assign instr_address = pc;
 	logic[5:0] opcode;
-	assign opcode = instr[31:26];
+	assign opcode = instr_readdata[31:26];
 
 // Reg Signals
  	logic[4:0] read_index_rs;
@@ -146,6 +146,7 @@ always @(posedge clk) begin
 		pc <= 32'hBFC00000;
 		active <= 1;
 		state <= FETCH;
+
 	    end
 	else if(clk_enable) begin
 		case(state)

@@ -10,7 +10,9 @@ else
 fi
 
 for i in ${TC} ; do
-
-	test/test_mips_cpu_harvard_one.sh ${DIRECTORY} ${TC} ${TestInstr}
+	echo "----------------------------------------------------------"
+	echo ${i}
+	echo "----------------------------------------------------------"
+	test/test_mips_cpu_harvard_one.sh ${DIRECTORY} ${i} ${TestInstr}
 
 done
