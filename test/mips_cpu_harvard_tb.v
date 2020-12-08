@@ -49,7 +49,7 @@ module mips_cpu_harvard_tb;
 
 		while(active) begin
 		 @(posedge clk);
-		 //$display("instr_address : %32h, instr_readdata : %32h",instr_address,instr_readdata);
+		 //$display("instr_address : %32h, instr_readdata : %32h data_address: %32h data_writedata: %32h data_readdata : %32h read: %1b write: %1b",instr_address,instr_readdata,data_address,data_writedata,data_readdata,data_read,data_write);
 		end
 		$display("Register V0: ",register_v0);
 		$display("Finished Running");

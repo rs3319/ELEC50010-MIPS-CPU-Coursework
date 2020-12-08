@@ -146,7 +146,6 @@ always @(posedge clk) begin
 		pc <= 32'hBFC00000;
 		active <= 1;
 		state <= FETCH;
-
 	    end
 	else if(clk_enable) begin
 		case(state)
@@ -176,7 +175,9 @@ always @(posedge clk) begin
 		DECODE: // Read from Memory (1 cycle delay needed to evaluate Rs before hand)
                begin
                //Get memory address 
+               $monitor("Decoding");
                case(opcode)
+
                		OP_JUMP: begin
                				 Branch_Addr <= {pc_next[31:28],instr[25:0]<<2};
                				 Jump <= 1;
