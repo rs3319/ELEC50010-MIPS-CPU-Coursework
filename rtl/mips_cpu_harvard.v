@@ -198,12 +198,23 @@ always @(posedge clk) begin
 	               		 		end
 	               		 F_JALR:
 	               		 		begin
+	               		 			Mem_Reg_Select <= 1;
 	               		 			data_writedata <= pc_next + 4;
 	               		 			Jump <= 1;
+	               		 			write_on_next <= 1;
 	               		 			Branch_Addr <= read_data_rs;
 	               		 		end
 	               		endcase
                		end
+               		OP_JAL:
+               			begin
+               				Mem_Reg_Select <= 1;
+               				write_index <= 31;
+               				data_writedata <= pc_next + 4;
+	               		 	Jump <= 1;
+	               		 	write_on_next <= 1;
+	               		 	Branch_Addr <= {pc_next[31:28],instr[25:0]<<2};
+	               		 end
                		OP_ADDIU, OP_ANDI, OP_LUI, OP_ORI, OP_SLTI, OP_SLTIU:
                			begin
                				Mem_Reg_Select <= 1;
