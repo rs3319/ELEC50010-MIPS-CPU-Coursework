@@ -62,7 +62,8 @@ module mips_cpu_regs(
                 regs[index] <= 0;
             end
         end
-        else if (write_enable == 1) begin
+        else if (write_enable == 1 && write_index != 0) begin
+            //$monitor("Writing to: ", write_index);
             regs[write_index] <= write_data;
         end
     end

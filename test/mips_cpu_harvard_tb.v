@@ -3,7 +3,7 @@ module mips_cpu_harvard_tb;
 
 	parameter RAM_INIT_FILE = "";
 	parameter TIMEOUT_CYCLES = 100;
-	parameter REF_FILE = "";
+	parameter integer REF_OUT = 0;
 	logic OUTPUT;
 	logic clk;
 	logic rst;
@@ -49,13 +49,14 @@ module mips_cpu_harvard_tb;
 
 		while(active) begin
 		 @(posedge clk);
+		 //$display("Tick");
 		 //$display("instr_address : %32h, instr_readdata : %32h data_address: %32h data_writedata: %32h data_readdata : %32h read: %1b write: %1b",instr_address,instr_readdata,data_address,data_writedata,data_readdata,data_read,data_write);
 		end
-		$display("Register V0: ",register_v0);
-		$display("Finished Running");
+		//$display("Register V0: ",register_v0);
+		//$display("Finished Running");
 		//scan_file = $fscanf(REF_FILE, "%d\n", OUTPUT);
-		if(register_v0 != 0) begin
-			$fatal(1,"Reference Outputs do not match Testbench Output: ", register_v0);
+		if(register_v0 != REF_OUT) begin
+			$fatal(1,"Reference Outputs do not match Testbench Output: %h, %h", register_v0,REF_OUT);
 		end
 		$finish;
 	end

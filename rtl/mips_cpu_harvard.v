@@ -151,11 +151,12 @@ always @(posedge clk) begin
 		case(state)
 		FETCH: begin //Fetching Instruction and Decode
 				//Reading Reg Values
-				$monitor("Fetching : Opcode: %6b, Instr Address : %32h",opcode,instr_address);
+				//$monitor("Fetching : Opcode: %6b, Instr Address : %32h",opcode,instr_address);
 				instr <= instr_readdata;
 				data_read <= 0;
                	data_write <= 0;
                	write_on_next <= 0;
+               	write_enable <= 0;
 				read_index_rs <= instr_readdata[25:21];
 				read_index_rt <= instr_readdata[20:16];
 				if(instr_readdata[31:26] == 6'b000000) begin
@@ -175,7 +176,7 @@ always @(posedge clk) begin
 		DECODE: // Read from Memory (1 cycle delay needed to evaluate Rs before hand)
                begin
                //Get memory address 
-               $monitor("Decoding");
+               //$monitor("Decoding");
                case(opcode)
 
                		OP_JUMP: begin
@@ -183,7 +184,7 @@ always @(posedge clk) begin
                				 Jump <= 1;
                				 end
                		OP_R: begin
-               			$monitor("R type: %6b",AluOP);
+               			//$monitor("R type: %6b",AluOP);
 	               		case(AluOP) 
 	               		
 	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU: begin
@@ -193,6 +194,7 @@ always @(posedge clk) begin
 	               		
 	   
 	               		 F_JR: begin
+	               		 		//$monitor("Register Rs: %32h Read data rs: %32h",read_index_rs, read_data_rs);
 	               		 		Branch_Addr <= read_data_rs;
 	               		 		Jump <= 1;
 	               		 		end
@@ -260,6 +262,7 @@ always @(posedge clk) begin
 					write_enable <= 0;
 				end
 				if(delay_slot) begin
+					//$monitor("Jumping to : %32h", Branch_Addr);
 					pc <= Branch_Addr;
 					Jump <=0;
 					Branch <= 0;

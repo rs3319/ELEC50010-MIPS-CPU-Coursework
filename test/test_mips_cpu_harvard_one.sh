@@ -3,17 +3,19 @@
 DIRECTORY="$1"
 TC="$2"
 TC_Dir=$(dirname "${TC}")
-TC_Name="$3"
-BN=$(basename "${TC}" .hex.txt)
-#Compile Everything in directory
 
-iverilog -g 2012 -s mips_cpu_harvard_tb \ test/mips_cpu_harvard_tb.v rtl/mips_cpu_harvard.v rtl/mips_cpu/*.v \  -Pmips_cpu_harvard_tb.RAM_INIT_FILE=\"${TC}\" -Pmips_cpu_harvard_tb.REF_FILE=\"${TC_Dir}/${BN}_ref.txt\"  \  -o test/Executables/mips_cpu_harvard_tb_${BN}
+BN=$(basename "${TC}" .hex.txt)
+TC_Name=${BN%-*}
+REFS_OUT=$(cat "test/Outputs/${BN}.txt")
+#Compile Everything in directory
+iverilog -g 2012 -s mips_cpu_harvard_tb  \ test/mips_cpu_harvard_tb.v rtl/mips_cpu_harvard.v rtl/mips_cpu/*.v \  -Pmips_cpu_harvard_tb.RAM_INIT_FILE=\"${TC}\" -Pmips_cpu_harvard_tb.REF_OUT=${REFS_OUT} \  -o test/Executables/mips_cpu_harvard_tb_${BN}
 set +e
 test/Executables/mips_cpu_harvard_tb_${BN}
 RESULT=$?
 set -e
 
-if ["${RESULT}" -ne 0]] then
-	echo "${BN}, FAIL"
-	exit
+if [ ${RESULT} != 0 ]; then
+	echo "${BN}, ${TC_Name}, FAIL"
+else 
+	echo "${BN}, ${TC_Name}, pass"
 fi

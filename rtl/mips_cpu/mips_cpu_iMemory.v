@@ -15,7 +15,7 @@ module mips_cpu_iMemory(
 			memory[i] = 0;
 		end
 		if (MEM_INIT_FILE != "") begin
-			$readmemh(MEM_INIT_FILE, memory, 0,400);
+			$readmemh(MEM_INIT_FILE, memory, 0, 400);
 		end
 	end
 
