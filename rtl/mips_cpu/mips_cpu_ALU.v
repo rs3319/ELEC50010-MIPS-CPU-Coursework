@@ -50,12 +50,28 @@ module mips_cpu_ALU(
 					
 					ALU_result = temp;
 					end
+				
+				6'h07 : //srav
+					begin
+						temp = rt_content;
+						for(i = 0; i < rs_content[4:0]; i = i + 1) begin
+							temp = {temp[31],temp[31:1]};
+						end
+
+					ALU_result = temp;
+					end
 					
 				6'h02 : //srl
 					ALU_result = (rt_content >> shamt);
+				
+				6'h06 : //srlv
+					ALU_result = (rt_content >> rs_content[4:0]);
 			
 				6'h00 : //sll
 					ALU_result = (rt_content << shamt);
+				
+				6'h04 : //sllv	
+					ALU_result = (rt_content << rs_content[4:0]);
 				
 				6'h2b : //sltu
 					begin
