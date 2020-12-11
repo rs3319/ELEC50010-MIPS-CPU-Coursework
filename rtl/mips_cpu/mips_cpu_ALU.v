@@ -11,7 +11,8 @@ module mips_cpu_ALU(
 	output logic sig_branch, 
 	output logic[31:0] ALU_result, 
     output logic carry_out, 
-    output logic zero
+    output logic zero,
+	output logic link
 );	
 
 	integer i; 
@@ -103,7 +104,6 @@ module mips_cpu_ALU(
 					
 				6'h4 : // beq
 					begin
-						// if the result is zero, they are equal go branch
 						ALU_result = rs_content - rt_content;
 						if(ALU_result == 0) begin
 							sig_branch = 1'b1;
@@ -115,7 +115,6 @@ module mips_cpu_ALU(
 				
 				6'h5 : // bne
 					begin
-						// if the result is not zero, they are not equal go branch!
 						ALU_result = rs_content - rt_content;
 						if(ALU_result != 0) begin
 							sig_branch = 1'b1;
@@ -126,6 +125,67 @@ module mips_cpu_ALU(
 						end
 					end
 				
+				6'h1 : // TO DO: decide between bgez (rt = 0), bltz (rs =0), BLTZAL, BGEZAL
+					begin
+						if(rt_content == 6'h0) begin //bltz
+							if(rs_content < 0) begin
+								sig_branch = 1'b1;
+							end 
+							else begin 
+								sig_branch = 1'b0;
+							end
+						end 
+						else if(rt_content == 6'h1) begin //bgez
+							if(rs_content >= 0) begin
+								sig_branch = 1'b1;
+							end 
+							else begin 
+								sig_branch = 1'b0;
+							end
+						end 
+						else if(rt_content == 5'b10000) begin //bltzal
+								if(rs_content < 0) begin
+								sig_branch = 1'b1;
+								link = 1'b1;
+							end 
+								else begin 
+									sig_branch = 1'b0;
+									link = 1'b0;
+							end
+						end
+						else begin //bgezal
+							 if(rs_content >= 0) begin
+								sig_branch = 1'b1;
+								link = 1'b1;
+								
+							end 
+							else begin 
+								sig_branch = 1'b0;
+								link = 1'b0;
+							end
+						end  	
+					end 
+
+				6'h7 : //bgtz
+					begin 
+						if(rs_content > 0) begin
+							sig_branch = 1'b1;
+						end 
+						else begin
+							sig_branch = 1'b0;
+						end 
+					end 
+				
+				6'h6 : //blez
+				 	begin 
+						if(rs_content <= 0) begin
+							sig_branch = 1'b1;
+						end 
+						else begin
+							sig_branch = 1'b0;
+						end 
+					end 
+	
 				6'b001111 : // lui
 					ALU_result = {immediate, {16{1'b0}}};
 				
