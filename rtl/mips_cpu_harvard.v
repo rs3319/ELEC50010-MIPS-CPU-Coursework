@@ -101,7 +101,7 @@ typedef enum logic[5:0]{
 	logic[31:0] write_data;
 	logic carryReg;
 	logic carryNext;
-
+	logic linkNext;
 
 // Intermediate Reg Signals
 	logic[4:0] Rt;
@@ -157,6 +157,7 @@ always @(posedge clk) begin
                	data_write <= 0;
                	write_on_next <= 0;
                	write_enable <= 0;
+
 				read_index_rs <= instr_readdata[25:21];
 				read_index_rt <= instr_readdata[20:16];
 				if(instr_readdata[31:26] == 6'b000000) begin
@@ -180,7 +181,8 @@ always @(posedge clk) begin
                case(opcode)
 
                		OP_JUMP: begin
-               				 Branch_Addr <= {pc_next[31:28],instr[25:0]<<2};
+               				 Branch_Addr <= {pc_next[31:28],instr[25:0],2'b00};
+               				 //$monitor("Branch: %32h",Branch_Addr);
                				 Jump <= 1;
                				 end
                		OP_R: begin
@@ -215,7 +217,7 @@ always @(posedge clk) begin
                				data_writedata <= pc_next + 4;
 	               		 	Jump <= 1;
 	               		 	write_on_next <= 1;
-	               		 	Branch_Addr <= {pc_next[31:28],instr[25:0]<<2};
+	               		 	Branch_Addr <= {pc_next[31:28],instr[25:0],2'b00};
 	               		 end
                		OP_ADDIU, OP_ANDI, OP_LUI, OP_ORI, OP_SLTI, OP_SLTIU:
                			begin
@@ -239,6 +241,15 @@ always @(posedge clk) begin
                			write_on_next <= 0;
                			Branch <= sig_Branch;
                		end 
+               		OP_BLTZ, OP_BGTZ, OP_BLEZ: begin
+               			Branch <= sig_Branch;
+               			if(linkNext) begin
+               				Mem_Reg_Select <= 1;
+               				write_index <= 31;
+               				write_on_next <= 1;
+               				write_data <= pc_next + 4;
+               			end
+               		end
                endcase		
                		state <= EXEC;
                end   				
@@ -246,6 +257,7 @@ always @(posedge clk) begin
 			begin
 				//$monitor("3 : Instruction: %32h, Instr Address : %32h",instr_readdata,instr_address);
 				carryReg <= carryNext;
+
 				// Memory/Reg -> Reg
 				if(!Mem_Reg_Select) begin
 					write_data <= data_readdata;
@@ -275,6 +287,9 @@ always @(posedge clk) begin
 				else begin
 					pc <= pc_next;
 				end
+				if(Branch) begin
+					Branch_Addr <= pc_next + {{14{Alu_Immediate[15]}},Alu_Immediate,2'b00};
+				end
 				state <= FETCH;
 			end
 		endcase
@@ -283,7 +298,7 @@ always @(posedge clk) begin
 	end 
 
 
-mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,sig_Branch,Alu_Out,carryNext,ZF);
+mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,sig_Branch,Alu_Out,carryNext,ZF,linkNext);
 mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,write_enable,write_data,register_v0);
 
 

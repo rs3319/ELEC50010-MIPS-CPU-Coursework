@@ -2,7 +2,7 @@ module mips_cpu_hilo(
 
     input logic clk,
     input logic reset,
-    
+
     input logic[4:0] read_index_rs,
     output logic[31:0] read_data_rs,
     input logic[4:0] read_index_rt,
@@ -13,9 +13,10 @@ module mips_cpu_hilo(
     input logic[31:0] write_data_lo,
     input logic[31:0] write_data_hi,
     output logic[31:0] lo_reg,
-    output logic[31:0] hi_reg,
+    output logic[31:0] hi_reg
 );
 
     logic[31:0] lo;
     logic[31:0] hi;
     
+endmodule

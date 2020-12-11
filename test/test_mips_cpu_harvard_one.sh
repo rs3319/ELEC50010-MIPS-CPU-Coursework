@@ -15,7 +15,7 @@ RESULT=$?
 set -e
 
 if [ ${RESULT} != 0 ]; then
-	echo "${BN}, ${TC_Name}, FAIL"
+	echo "${BN} ${TC_Name} Fail"
 else 
-	echo "${BN}, ${TC_Name}, pass"
+	echo "${BN} ${TC_Name} Pass"
 fi
