@@ -73,10 +73,18 @@ module mips_cpu_ALU(
 				
 				6'h04 : //sllv	
 					ALU_result = (rt_content << rs_content[4:0]);
-				
+				6'b101010: //slt
+					begin
+						if($signed(rs_content) < $signed(rt_content)) begin
+							ALU_result = 1;
+						end 
+                        else begin
+							ALU_result = 0;
+						end
+					end
 				6'h2b : //sltu
 					begin
-						if(rs_content < rt_content) begin
+						if($unsigned(rs_content) < $unsigned(rt_content)) begin
 							ALU_result = 1;
 						end 
                         else begin

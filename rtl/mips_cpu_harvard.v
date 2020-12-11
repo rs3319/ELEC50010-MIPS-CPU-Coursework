@@ -189,7 +189,7 @@ always @(posedge clk) begin
                			//$monitor("R type: %6b",AluOP);
 	               		case(AluOP) 
 	               		
-	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_SRA, F_SRL, F_SLL, F_SLTU: begin
+	               		 F_ADDU, F_SUBU, F_AND, F_OR, F_XOR, F_SRA, F_SRL, F_SLL, F_SLT, F_SLTU: begin
 	               				Mem_Reg_Select <= 1;
 	               		 		write_on_next <= 1;
 	               		 	end

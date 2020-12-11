@@ -15,8 +15,10 @@ module mips_cpu_hilo(
     output logic[31:0] lo_reg,
     output logic[31:0] hi_reg
 );
-
+    logic[63:0] prodreg;
     logic[31:0] lo;
     logic[31:0] hi;
+
     
+// remove register signals and only include hi/lo reg and multiplicand multiplier
 endmodule
