@@ -97,8 +97,8 @@ typedef enum logic[5:0]{
 	logic[31:0] read_data_rt;
  	logic[4:0] write_index;
  	logic write_on_next;
-	logic write_enable;
-	logic[31:0] write_data;
+	logic reg_write_enable;
+	logic[31:0] reg_write_data;
 	logic carryReg;
 	logic carryNext;
 	logic linkNext;
@@ -156,7 +156,7 @@ always @(posedge clk) begin
 				data_read <= 0;
                	data_write <= 0;
                	write_on_next <= 0;
-               	write_enable <= 0;
+               	reg_write_enable <= 0;
 
 				read_index_rs <= instr_readdata[25:21];
 				read_index_rt <= instr_readdata[20:16];
@@ -224,19 +224,23 @@ always @(posedge clk) begin
                				Mem_Reg_Select <= 1;
                		 		write_on_next <= 1;
                		 	end
-               		OP_LW: begin
-               			  data_address <= 4*(read_data_rs + instr[15:0]);
+               		OP_LW, OP_LH, OP_LWL, OP_LWR, OP_LHU: begin
+               			// Note for LW/SW: The effective address must be naturally aligned, If either of the two least-significant bits of the address are non-zero, an Address exception error occurs
+               			  data_address <= read_data_rs + {{16{instr[15:0]}},instr[15:0]};
+
                			  data_read <= 1;
                			  data_write <= 0;
                			  write_on_next <= 1;
                			  Mem_Reg_Select <= 0;
                			  end
                		OP_SW: begin
-               			  data_address <= 4*(read_data_rs + instr[15:0]);
+
+               			  data_address <= read_data_rs + {{16{instr[15:0]}},instr[15:0]};
                			  data_writedata <= read_data_rt;
                			  data_write <= 1;
                			  data_read <= 0;
                			  end
+
                		OP_BEQ, OP_BNE: begin
                			write_on_next <= 0;
                			Branch <= sig_Branch;
@@ -247,7 +251,7 @@ always @(posedge clk) begin
                				Mem_Reg_Select <= 1;
                				write_index <= 31;
                				write_on_next <= 1;
-               				write_data <= pc_next + 4;
+               				reg_write_data <= pc_next + 4;
                			end
                		end
                endcase		
@@ -256,22 +260,37 @@ always @(posedge clk) begin
 		EXEC: // Write to Reg/Memory (Increment PC here)
 			begin
 				//$monitor("3 : Instruction: %32h, Instr Address : %32h",instr_readdata,instr_address);
-				carryReg <= carryNext;
-
+				carryReg <= carryNext;	
 				// Memory/Reg -> Reg
 				if(!Mem_Reg_Select) begin
-					write_data <= data_readdata;
+					case(opcode)
+						OP_LW: begin	
+							reg_write_data <= data_readdata;
+						end
+						OP_LH: begin
+							reg_write_data <= {{16{data_readdata[15]}},data_readdata[15:0]};
+						end
+						OP_LHU: begin
+							reg_write_data <= {{16{1'b0}},data_readdata[15:0]};
+						end
+						OP_LB: begin
+							reg_write_data <= {{24{data_readdata[7]}},data_readdata[7:0]};
+						end
+						OP_LBU: begin
+							reg_write_data <= {{24{1'b0}},data_readdata[7:0]};
+						end
+					endcase
 				end
 				else begin
-					write_data <= Alu_Out;
+					reg_write_data <= Alu_Out;
 				end
 				// Reg -> Memory
 				if(write_on_next) begin
-					write_enable <= 1;
+					reg_write_enable <= 1;
 					write_on_next <= 0;
 				end
 				else begin
-					write_enable <= 0;
+					reg_write_enable <= 0;
 				end
 				if(delay_slot) begin
 					//$monitor("Jumping to : %32h", Branch_Addr);
@@ -299,7 +318,7 @@ always @(posedge clk) begin
 
 
 mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,sig_Branch,Alu_Out,carryNext,ZF,linkNext);
-mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,write_enable,write_data,register_v0);
+mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,reg_write_enable,reg_write_data,register_v0);
 
 
 endmodule
