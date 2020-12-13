@@ -41,6 +41,9 @@ module mips_cpu_harvard_tb;
 		@(posedge clk);
 		rst <= 1;
 		@(posedge clk);
+		#1
+		assert(!(data_read || data_write));
+
 		rst <= 0;
 		@(posedge clk);
 		assert(active==1);
@@ -49,6 +52,10 @@ module mips_cpu_harvard_tb;
 
 		while(active) begin
 		 @(posedge clk);
+		 assert(!(data_read && data_write));
+		 if(data_write) begin
+		 	assert(instr_address != data_address);
+		 end
 		 //$display("Tick");
 		 //$display("instr_address : %32h, instr_readdata : %32h data_address: %32h data_writedata: %32h data_readdata : %32h read: %1b write: %1b",instr_address,instr_readdata,data_address,data_writedata,data_readdata,data_read,data_write);
 		end

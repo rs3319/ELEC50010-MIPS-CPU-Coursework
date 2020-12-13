@@ -102,11 +102,12 @@ typedef enum logic[5:0]{
 	logic carryReg;
 	logic carryNext;
 	logic linkNext;
-
+	logic[31:0] Debug;
 // Intermediate Reg Signals
 	logic[4:0] Rt;
 	logic[4:0] Rd;
-
+// LWL LWR Intermediate Signals
+	logic [31:0] lw_shift;
 
 // ALU Signals
 	logic[5:0] AluOP;
@@ -143,6 +144,8 @@ end
 always @(posedge clk) begin
 	if (reset) begin
 		// reset code, change state to FETCH
+		data_read <= 0;
+		data_write <= 0;
 		pc <= 32'hBFC00000;
 		active <= 1;
 		state <= FETCH;
@@ -224,7 +227,7 @@ always @(posedge clk) begin
                				Mem_Reg_Select <= 1;
                		 		write_on_next <= 1;
                		 	end
-               		OP_LW, OP_LH, OP_LWL, OP_LWR, OP_LHU, OP_LB, OP_LBU: begin
+               		OP_LW, OP_LH, OP_LHU, OP_LB, OP_LBU: begin
                			// Note for LW/SW: The effective address must be naturally aligned, If either of the two least-significant bits of the address are non-zero, an Address exception error occurs
                			  data_address <= read_data_rs + {{16{instr[15:0]}},instr[15:0]};
 
@@ -233,9 +236,18 @@ always @(posedge clk) begin
                			  write_on_next <= 1;
                			  Mem_Reg_Select <= 0;
                			  end
+               		OP_LWL, OP_LWR: begin
+               			  data_address <= (read_data_rs + {{16{instr[15]}},instr[15:0]}) & 32'hFFFFFFFC;
+               			  //$monitor("data addr %32h",data_address);
+               			  data_read <= 1;
+               			  lw_shift <= (((read_data_rs + instr[15:0]) & 32'h3));
+               			  data_write <= 0;
+               			  write_on_next <= 1;
+               			  Mem_Reg_Select <= 0;
+               		end
                		OP_SW: begin
 
-               			  data_address <= read_data_rs + {{16{instr[15:0]}},instr[15:0]};
+               			  data_address <= read_data_rs + {{16{instr[15]}},instr[15:0]};
                			  data_writedata <= read_data_rt;
                			  data_write <= 1;
                			  data_read <= 0;
@@ -278,6 +290,12 @@ always @(posedge clk) begin
 						end
 						OP_LBU: begin
 							reg_write_data <= {{24{1'b0}},data_readdata[7:0]};
+						end
+						OP_LWL: begin
+							reg_write_data <= (read_data_rt >> ((lw_shift+1) << 3)) + ((data_readdata << ((3-lw_shift) << 3)));
+						end
+						OP_LWR: begin
+							reg_write_data <= (read_data_rt & (32'hFFFFFFFF << ((4-lw_shift) << 3))) + (data_readdata >> ((lw_shift) << 3));
 						end
 					endcase
 				end
