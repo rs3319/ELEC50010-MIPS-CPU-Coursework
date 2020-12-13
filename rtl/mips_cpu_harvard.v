@@ -224,7 +224,7 @@ always @(posedge clk) begin
                				Mem_Reg_Select <= 1;
                		 		write_on_next <= 1;
                		 	end
-               		OP_LW, OP_LH, OP_LWL, OP_LWR, OP_LHU: begin
+               		OP_LW, OP_LH, OP_LWL, OP_LWR, OP_LHU, OP_LB, OP_LBU: begin
                			// Note for LW/SW: The effective address must be naturally aligned, If either of the two least-significant bits of the address are non-zero, an Address exception error occurs
                			  data_address <= read_data_rs + {{16{instr[15:0]}},instr[15:0]};
 
