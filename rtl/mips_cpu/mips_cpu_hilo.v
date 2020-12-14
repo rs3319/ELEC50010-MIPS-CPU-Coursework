@@ -37,7 +37,7 @@ always @(posedge clk) begin
     
     6'b011001:
         begin //multu
-            prodreg = a * b;
+            prodreg = $unsigned(a) * $unsigned(b);
             hi[31:0] = prodreg[63:32];
             lo[31:0] = prodreg[31:0];
         
@@ -64,7 +64,7 @@ always @(posedge clk) begin
             lo_reg = lo;
         end
     
-    6'b011010:
+    6'b011010: //need multi-cycle iterative 
         begin //div
             lo = a/b;
             hi = a%b;

@@ -258,6 +258,7 @@ always @(posedge clk) begin
                			Branch <= sig_Branch;
                		end 
                		OP_BLTZ, OP_BGTZ, OP_BLEZ: begin
+						   //$monitor("Branching:", sig_Branch);
                			Branch <= sig_Branch;
                			if(linkNext) begin
                				Mem_Reg_Select <= 1;
@@ -335,7 +336,7 @@ always @(posedge clk) begin
 	end 
 
 
-mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,sig_Branch,Alu_Out,carryNext,ZF,linkNext);
+mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,read_index_rt,sig_Branch,Alu_Out,carryNext,ZF,linkNext);
 mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,reg_write_enable,reg_write_data,register_v0);
 
 

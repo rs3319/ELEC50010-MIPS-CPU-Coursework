@@ -6,7 +6,8 @@ module mips_cpu_ALU(
 	input logic[15:0] immediate,
 	input logic[31:0] rs_content, 
 	input logic[31:0] rt_content, 
-    input logic carry_in, 
+    input logic carry_in,
+	input logic[4:0] rt_index, 
 	
 	output logic sig_branch, 
 	output logic[31:0] ALU_result, 
@@ -135,7 +136,8 @@ module mips_cpu_ALU(
 				
 				6'h1 : // TO DO: decide between bgez (rt = 0), bltz (rs =0), BLTZAL, BGEZAL
 					begin
-						if(rt_content == 6'h0) begin //bltz
+						//$monitor("BGEZAL:", rt_index);
+						if(rt_index == 6'h0) begin //bltz
 							link = 1'b0;
 							if(rs_content < 0) begin
 								sig_branch = 1'b1;
@@ -144,7 +146,7 @@ module mips_cpu_ALU(
 								sig_branch = 1'b0;
 							end
 						end 
-						else if(rt_content == 6'h1) begin //bgez
+						else if(rt_index == 6'h1) begin //bgez
 							link = 1'b0;
 							if(rs_content >= 0) begin
 								sig_branch = 1'b1;
@@ -153,7 +155,7 @@ module mips_cpu_ALU(
 								sig_branch = 1'b0;
 							end
 						end 
-						else if(rt_content == 5'b10000) begin //bltzal
+						else if(rt_index == 5'b10000) begin //bltzal
 								if(rs_content < 0) begin
 								sig_branch = 1'b1;
 								link = 1'b1;
@@ -163,7 +165,7 @@ module mips_cpu_ALU(
 									link = 1'b0;
 							end
 						end
-						else begin //bgezal
+						else if(rt_index == 5'b10001) begin //bgezal
 							 if(rs_content >= 0) begin
 								sig_branch = 1'b1;
 								link = 1'b1;

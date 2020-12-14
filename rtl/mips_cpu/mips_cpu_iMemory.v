@@ -6,12 +6,13 @@ module mips_cpu_iMemory(
 	parameter MEM_INIT_FILE = "";
 
 
-	logic[7:0] memory [400:0];
+	logic[7:0] memory[400:0];
 	logic[31:0] address;
 	assign address = read_address - $unsigned(32'hBFC00000);
+	
 	initial begin
 		integer i;
-		for(i = 0;i< 401;i++) begin
+		for(i = 0;i < 401;i++) begin
 			memory[i] = 0;
 		end
 		if (MEM_INIT_FILE != "") begin
