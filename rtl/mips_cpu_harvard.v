@@ -123,6 +123,17 @@ typedef enum logic[5:0]{
 	logic[31:0] Alu_Out;
 	logic ZF;
 
+// HiLo
+	logic DivFlag;
+	logic Div_Valid_Out;
+	logic Div_Reg;
+	logic Div_Valid_In;
+	logic HiLoSrc;
+	logic HiLoSel;
+	logic [31:0] HiLoOut;
+	logic [31:0] HiOut;
+	logic [31:0] LoOut;
+	assign HiLoOut = HiLoOut ? HiOut : LoOut;
 // Reg Write Back Multiplexer
 	logic Mem_Reg_Select;
 	logic RegDst;
@@ -145,6 +156,7 @@ always @(posedge clk) begin
 	if (reset) begin
 		// reset code, change state to FETCH
 		data_read <= 0;
+		DivFlag <= 0;
 		data_write <= 0;
 		pc <= 32'hBFC00000;
 		active <= 1;
@@ -211,6 +223,27 @@ always @(posedge clk) begin
 	               		 			write_on_next <= 1;
 	               		 			Branch_Addr <= read_data_rs;
 	               		 		end
+
+
+	               		 F_DIV, F_DIVU:
+	               		 		begin
+	               		 			if(Div_Reg) begin
+	               		 				$monitor("Division Complete");
+	               		 				DivFlag <= 0;
+	               		 			end
+	               		 			else if(!DivFlag) begin
+	               		 				$monitor("Division Begins");
+	               		 				DivFlag <= 1;
+	               		 				Div_Valid_In <= 1;
+	               		 			end
+	               		 			else begin
+	               		 				//$monitor("Dividing");
+	               		 				if(Div_Valid_In) begin
+	               		 					Div_Valid_In <= 0;
+	       								end
+	       								Div_Reg <= Div_Valid_Out;
+	               		 			end	
+	               		 		end
 	               		endcase
                		end
                		OP_JAL:
@@ -267,68 +300,80 @@ always @(posedge clk) begin
                				reg_write_data <= pc_next + 4;
                			end
                		end
-               endcase		
-               		state <= EXEC;
+               endcase
+               		if(!DivFlag) begin		
+               			state <= EXEC;
+               		end
                end   				
 		EXEC: // Write to Reg/Memory (Increment PC here)
 			begin
-				//$monitor("3 : Instruction: %32h, Instr Address : %32h",instr_readdata,instr_address);
-				carryReg <= carryNext;	
-				// Memory/Reg -> Reg
-				if(!Mem_Reg_Select) begin
-					case(opcode)
-						OP_LW: begin	
-							reg_write_data <= data_readdata;
+				if(!DivFlag) begin
+					//$monitor("3 : Instruction: %32h, Instr Address : %32h",instr_readdata,instr_address);
+					carryReg <= carryNext;	
+					// Memory/Reg -> Reg
+					if(!Mem_Reg_Select) begin
+						case(opcode)
+							OP_LW: begin	
+								reg_write_data <= data_readdata;
+							end
+							OP_LH: begin
+								reg_write_data <= {{16{data_readdata[15]}},data_readdata[15:0]};
+							end
+							OP_LHU: begin
+								reg_write_data <= {{16{1'b0}},data_readdata[15:0]};
+							end
+							OP_LB: begin
+								reg_write_data <= {{24{data_readdata[7]}},data_readdata[7:0]};
+							end
+							OP_LBU: begin
+								reg_write_data <= {{24{1'b0}},data_readdata[7:0]};
+							end
+							OP_LWL: begin
+								reg_write_data <= (read_data_rt >> ((lw_shift+1) << 3)) + ((data_readdata << ((3-lw_shift) << 3)));
+							end
+							OP_LWR: begin
+								reg_write_data <= (read_data_rt & (32'hFFFFFFFF << ((4-lw_shift) << 3))) + (data_readdata >> ((lw_shift) << 3));
+							end
+						endcase
+					end
+					else begin
+						if(HiLoSrc) begin
+						reg_write_data <= HiLoOut;
 						end
-						OP_LH: begin
-							reg_write_data <= {{16{data_readdata[15]}},data_readdata[15:0]};
+						else begin
+						reg_write_data <= Alu_Out;
 						end
-						OP_LHU: begin
-							reg_write_data <= {{16{1'b0}},data_readdata[15:0]};
-						end
-						OP_LB: begin
-							reg_write_data <= {{24{data_readdata[7]}},data_readdata[7:0]};
-						end
-						OP_LBU: begin
-							reg_write_data <= {{24{1'b0}},data_readdata[7:0]};
-						end
-						OP_LWL: begin
-							reg_write_data <= (read_data_rt >> ((lw_shift+1) << 3)) + ((data_readdata << ((3-lw_shift) << 3)));
-						end
-						OP_LWR: begin
-							reg_write_data <= (read_data_rt & (32'hFFFFFFFF << ((4-lw_shift) << 3))) + (data_readdata >> ((lw_shift) << 3));
-						end
-					endcase
+					end
+					// Reg -> Memory
+					if(write_on_next) begin
+						reg_write_enable <= 1;
+						write_on_next <= 0;
+					end
+					else begin
+						reg_write_enable <= 0;
+					end
+					if(delay_slot) begin
+						//$monitor("Jumping to : %32h", Branch_Addr);
+						pc <= Branch_Addr;
+						Jump <=0;
+						Branch <= 0;
+						delay_slot <= 0;
+					end
+					else if(Branch | Jump) begin
+					  	delay_slot <= 1;
+					  	pc <= pc_next;
+					end
+					else begin
+						pc <= pc_next;
+					end
+					if(Branch) begin
+						Branch_Addr <= pc_next + {{14{Alu_Immediate[15]}},Alu_Immediate,2'b00};
+					end
+					state <= FETCH;
 				end
 				else begin
-					reg_write_data <= Alu_Out;
+					state <= DECODE;
 				end
-				// Reg -> Memory
-				if(write_on_next) begin
-					reg_write_enable <= 1;
-					write_on_next <= 0;
-				end
-				else begin
-					reg_write_enable <= 0;
-				end
-				if(delay_slot) begin
-					//$monitor("Jumping to : %32h", Branch_Addr);
-					pc <= Branch_Addr;
-					Jump <=0;
-					Branch <= 0;
-					delay_slot <= 0;
-				end
-				else if(Branch | Jump) begin
-				  	delay_slot <= 1;
-				  	pc <= pc_next;
-				end
-				else begin
-					pc <= pc_next;
-				end
-				if(Branch) begin
-					Branch_Addr <= pc_next + {{14{Alu_Immediate[15]}},Alu_Immediate,2'b00};
-				end
-				state <= FETCH;
 			end
 		endcase
 
@@ -338,6 +383,6 @@ always @(posedge clk) begin
 
 mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,read_index_rt,sig_Branch,Alu_Out,carryNext,ZF,linkNext);
 mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,reg_write_enable,reg_write_data,register_v0);
-
+mips_cpu_hilo hilo(AluOP,clk,reset,read_data_rs,read_data_rt,Div_Valid_In,Div_Valid_Out,HiOut,LoOut);
 
 endmodule

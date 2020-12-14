@@ -2,7 +2,7 @@ module mips_cpu_harvard_tb;
 	timeunit 1ns / 10ps;
 
 	parameter RAM_INIT_FILE = "";
-	parameter TIMEOUT_CYCLES = 100;
+	parameter TIMEOUT_CYCLES = 1000;
 	parameter integer REF_OUT = 0;
 	logic OUTPUT;
 	logic clk;
