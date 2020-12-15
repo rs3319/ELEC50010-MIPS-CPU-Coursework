@@ -16,7 +16,10 @@ module mips_cpu_hilo(
     logic[63:0] prodreg;
     logic[31:0] lo;
     logic[31:0] hi;
+    assign hi_reg = hi;
+    assign lo_reg = lo;
     integer i;
+    //Divu
 	integer divCount;
 	logic [31:0] dd;
 	logic [63:0] ds;
@@ -24,24 +27,26 @@ module mips_cpu_hilo(
 	logic [31:0] q;
 	logic [63:0] r;
 	logic RestoreDivisor;
-    
+    logic div_finish;
+    //Div
+    logic negFlag;
+    logic negDividend;
 // remove register signals and only include hi/lo reg and multiplicand multiplier
 
 //mfhi, mflo in harvard cpu file
 always @(posedge clk) begin
-	//$monitor("op: ",opcode);
+	//$monitor("lo: ",lo);
 
     case(opcode)
     6'b010001: 
         begin //mthi
             hi <= a;
-            hi_reg <= hi;
         end
     
     6'b010011:
         begin //mtlo
             lo <= a;
-            lo_reg <= lo;
+
         end
     
     6'b011001:
@@ -50,8 +55,6 @@ always @(posedge clk) begin
             hi[31:0] <= prodreg[63:32];
             lo[31:0] <= prodreg[31:0];
         
-            hi_reg <= hi;
-            lo_reg <= lo;
         end
     
     6'b011000:
@@ -66,17 +69,15 @@ always @(posedge clk) begin
                     prodreg <= prodreg + toadd;
                 end
             end
-            hi[31:0] = prodreg[63:32];
-            lo[31:0] = prodreg[31:0];
+            hi[31:0] <= prodreg[63:32];
+            lo[31:0] <= prodreg[31:0];
         
-            hi_reg = hi;
-            lo_reg = lo;
         end
     
-    6'b011010: //need multi-cycle iterative 
-        begin //div
+    6'b011011: //need multi-cycle iterative 
+        begin //divu
 	    if(valid_in) begin
-	    	$monitor("Begin %10d, %10d",a,b);
+	    	//$monitor("Begin %10d, %10d",a,b);
 			dd <= a;
 			ds <= b << 33;
 			RestoreDivisor <= 0;
@@ -100,7 +101,9 @@ always @(posedge clk) begin
 			ds <= ds >> 1;
 			if(divCount <= 0) begin
 				valid_out <= 1;
-				$monitor("remainder: %64h quotient: %32h",r,q);
+				//$monitor("remainder: %64h quotient: %32h",r,q);
+                lo <= q;
+                hi <= r[31:0];
 			end
 			else begin
 				valid_out <= 0;
@@ -110,13 +113,95 @@ always @(posedge clk) begin
 		end
         end
     
-    6'b011011:
-        begin //divu
-            lo = a/b;
-            hi = a%b;
+    6'b011010:
+        begin //div
+        if(valid_in) begin
+            //$monitor("Begin %10d, %10d",a,b);
+            if($signed(a) < 0 && $signed(b) < 0) begin //both zero, negflag = 0, take twos complement of both
+                dd <= ~a + 1;
+                ds <= (~b +1) << 33;
+                r <= (~a+1);
+                prevR<= (~a+1);
+                negFlag <= 0;
+                negDividend <= 1;
+            end
+            else if($signed(a) < 0) begin
+                dd <= ~a + 1;
+                ds <= b << 33;
+                r <= (~a+1);
+                prevR<= (~a+1);
+                negFlag <= 1;
+                negDividend <= 1;
+            end
+            else if($signed(b) < 0) begin
+                negFlag <= 1;
+                dd <= a;
+                ds <= (~b +1) << 33;
+                r <= a;
+                prevR<= a;
+                negDividend <= 0;
+            end
+            else begin
+                negFlag <= 0;
+                dd <= a;
+                ds <= b << 33;
+                r <= a;
+                prevR<= a;
+                negDividend <= 0;
+            end
+            RestoreDivisor <= 0;
+            valid_out <= 0;
+            div_finish <= 0;
+            divCount <= 33;
+            q <= 0;
+        end
+        else if(divCount >= 0) begin
+            //$monitor("Iteration: %10d, quotient: %16h, remainder: %8h, ds: %14h",divCount,q,r,ds);
+
+            if(($signed(r - ds) >= 0)&&(divCount != 33)) begin
+                q <= {q,1'b1};
+                r <= r - ds;
+            end
+            else begin
+                q <= {q,1'b0};
+            end
+
+            ds <= ds >> 1;
+
+            if(divCount <= 0) begin
+
+                //$monitor("remainder: %64h quotient: %32h, Negative? : %1b, NegativeDividend?: %1b, Hi: %10h, Lo : %10h",r[31:0],q,negFlag,negDividend, hi, lo);
+                div_finish <= 1;
+                valid_out <= 1;
+            end
+
             
-            hi_reg = hi;
-            lo_reg = lo;
+            else begin
+
+                valid_out <= 0;
+            end
+            divCount <= divCount - 1;
+
+        end
+        else if(div_finish) begin
+                if(negDividend) begin
+                    if(a[31] == r[31]) begin
+                        hi <= ~r[31:0]+1;
+                    end
+                end
+                else begin 
+                    //$monitor("Hi Assigned to ", r[31:0]);
+                    hi <= r[31:0];
+
+                end
+                if(negFlag) begin
+                    lo <= ~q+1;
+                end
+                else begin;
+                    lo <= q;
+                end
+                valid_out <= 1;
+            end
         end
     endcase
 end

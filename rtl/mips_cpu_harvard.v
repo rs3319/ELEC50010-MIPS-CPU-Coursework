@@ -133,7 +133,7 @@ typedef enum logic[5:0]{
 	logic [31:0] HiLoOut;
 	logic [31:0] HiOut;
 	logic [31:0] LoOut;
-	assign HiLoOut = HiLoOut ? HiOut : LoOut;
+	assign HiLoOut = HiLoSel ? HiOut : LoOut;
 // Reg Write Back Multiplexer
 	logic Mem_Reg_Select;
 	logic RegDst;
@@ -172,7 +172,8 @@ always @(posedge clk) begin
                	data_write <= 0;
                	write_on_next <= 0;
                	reg_write_enable <= 0;
-
+               	HiLoSrc <= 0;
+               	Div_Reg <= 0;
 				read_index_rs <= instr_readdata[25:21];
 				read_index_rt <= instr_readdata[20:16];
 				if(instr_readdata[31:26] == 6'b000000) begin
@@ -223,16 +224,33 @@ always @(posedge clk) begin
 	               		 			write_on_next <= 1;
 	               		 			Branch_Addr <= read_data_rs;
 	               		 		end
-
-
+	               		 F_MULTU,F_MULT:
+	               		 		begin
+	               		 			//$monitor("Multiplication")
+	               		 		end
+	               		 F_MFHI:
+	               		 		begin
+	               		 			Mem_Reg_Select <= 1;
+	               		 			write_on_next <= 1;
+	               		 			HiLoSel <= 1;
+	               		 			HiLoSrc <= 1;
+	               		 			//$monitor("Debug: Hi : %32h Lo : %32h",HiOut,LoOut);
+	               		 		end
+	               		 F_MFLO:
+	               		 		begin
+	               		 			Mem_Reg_Select <= 1;
+	               		 			write_on_next <= 1;
+	               		 			HiLoSel <= 0;
+	               		 			HiLoSrc <= 1;
+	               		 		end
 	               		 F_DIV, F_DIVU:
 	               		 		begin
 	               		 			if(Div_Reg) begin
-	               		 				$monitor("Division Complete");
+	               		 				//$monitor("Division Complete");
 	               		 				DivFlag <= 0;
 	               		 			end
 	               		 			else if(!DivFlag) begin
-	               		 				$monitor("Division Begins");
+	               		 				//$monitor("Division Begins");
 	               		 				DivFlag <= 1;
 	               		 				Div_Valid_In <= 1;
 	               		 			end
@@ -338,7 +356,7 @@ always @(posedge clk) begin
 					end
 					else begin
 						if(HiLoSrc) begin
-						reg_write_data <= HiLoOut;
+							reg_write_data <= HiLoOut;
 						end
 						else begin
 						reg_write_data <= Alu_Out;
@@ -383,6 +401,6 @@ always @(posedge clk) begin
 
 mips_cpu_ALU ALU(AluOP,opcode,Alu_Shamt,Alu_Immediate,read_data_rs,read_data_rt,carryReg,read_index_rt,sig_Branch,Alu_Out,carryNext,ZF,linkNext);
 mips_cpu_regs Regs(clk,reset,read_index_rs,read_data_rs,read_index_rt,read_data_rt,write_index,reg_write_enable,reg_write_data,register_v0);
-mips_cpu_hilo hilo(AluOP,clk,reset,read_data_rs,read_data_rt,Div_Valid_In,Div_Valid_Out,HiOut,LoOut);
+mips_cpu_hilo hilo(AluOP,clk,reset,read_data_rs,read_data_rt,Div_Valid_In,Div_Valid_Out,LoOut,HiOut);
 
 endmodule
