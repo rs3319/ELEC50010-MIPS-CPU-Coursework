@@ -166,7 +166,7 @@ always @(posedge clk) begin
 		case(state)
 		FETCH: begin //Fetching Instruction and Decode
 				//Reading Reg Values
-				//monitor("Fetching : Opcode: %6b, Instr Address : %32h",opcode,instr_address);
+				//$monitor("Fetching : Opcode: %6b, Instr Address : %32h",opcode,instr_address);
 				instr <= instr_readdata;
 				data_read <= 0;
                	data_write <= 0;
@@ -221,7 +221,7 @@ always @(posedge clk) begin
 	               		 F_JALR:
 	               		 		begin
 	               		 			Mem_Reg_Select <= 1;
-	               		 			data_writedata <= pc_next + 4;
+	               		 			reg_write_data <= pc_next + 4;
 	               		 			Jump <= 1;
 	               		 			write_on_next <= 1;
 	               		 			Branch_Addr <= read_data_rs;
@@ -270,7 +270,7 @@ always @(posedge clk) begin
                			begin
                				Mem_Reg_Select <= 1;
                				write_index <= 31;
-               				data_writedata <= pc_next + 4;
+               				reg_write_data <= pc_next + 4;
 	               		 	Jump <= 1;
 	               		 	write_on_next <= 1;
 	               		 	Branch_Addr <= {pc_next[31:28],instr[25:0],2'b00};
@@ -282,7 +282,7 @@ always @(posedge clk) begin
                		 	end
                		OP_LW, OP_LH, OP_LHU, OP_LB, OP_LBU: begin
                			// Note for LW/SW: The effective address must be naturally aligned, If either of the two least-significant bits of the address are non-zero, an Address exception error occurs
-               			  data_address <= read_data_rs + {{16{instr[15:0]}},instr[15:0]};
+               			  data_address <= read_data_rs + {{16{instr[15]}},instr[15:0]};
 
                			  data_read <= 1;
                			  data_write <= 0;
@@ -333,6 +333,7 @@ always @(posedge clk) begin
 					carryReg <= carryNext;	
 					// Memory/Reg -> Reg
 					if(!Mem_Reg_Select) begin
+						//$monitor(data_address);
 						case(opcode)
 							OP_LW: begin	
 								reg_write_data <= data_readdata;
