@@ -156,6 +156,7 @@ module mips_cpu_ALU(
 							end
 						end 
 						else if(rt_index == 5'b10000) begin //bltzal
+							//$monitor(rs_content);
 								if($signed(rs_content) < 0) begin
 								sig_branch = 1'b1;
 								link = 1'b1;
