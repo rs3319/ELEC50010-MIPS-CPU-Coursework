@@ -23,9 +23,11 @@ module mips_cpu_hilo(
 	integer divCount;
 	logic [31:0] dd;
 	logic [63:0] ds;
+    logic [93:0] ds_u;
 	logic [63:0] prevR;
 	logic [31:0] q;
 	logic [63:0] r;
+    logic [93:0] r_u;
 	logic RestoreDivisor;
     logic div_finish;
     //Div
@@ -79,31 +81,30 @@ always @(posedge clk) begin
 	    if(valid_in) begin
 	    	//$monitor("Begin %10d, %10d",a,b);
 			dd <= a;
-			ds <= b << 33;
+			ds_u <= b << 33;
 			RestoreDivisor <= 0;
 			q <= 0;
 			divCount <= 33;
 			valid_out <= 0;
-			r <= a;
+			r_u <= a;
 			prevR<= a;
 		end
 		else if(divCount >= 0) begin
-			//$monitor("Iteration: %10d, quotient: %16h, remainder: %8h, ds: %14h",divCount,q,r,ds);
+			//$monitor("Iteration: %10d, quotient: %16h, remainder: %8h, ds: %14h",divCount,q,r_u,ds_u);
 
-			if(($signed(r - ds) >= 0)&&(divCount != 33)) begin
+			if(($signed(r_u - ds_u) >= 0)&&(divCount != 33)) begin
 				q <= {q,1'b1};
-				r <= r - ds;
+				r_u <= r_u - ds_u;
 			end
 			else begin
 				q <= {q,1'b0};
 			end
 
-			ds <= ds >> 1;
+			ds_u <= ds_u >> 1;
 			if(divCount <= 0) begin
 				valid_out <= 1;
-				//$monitor("remainder: %64h quotient: %32h",r,q);
-                lo <= q;
-                hi <= r[31:0];
+				//$monitor("remainder: %64h quotient: %32h",r_u,q);
+                div_finish <= 1;
 			end
 			else begin
 				valid_out <= 0;
@@ -111,6 +112,11 @@ always @(posedge clk) begin
 			divCount <= divCount - 1;
 
 		end
+        else if(div_finish) begin
+                lo <= q;
+                hi <= r_u[31:0];
+                valid_out <= 1;
+        end
         end
     
     6'b011010:
