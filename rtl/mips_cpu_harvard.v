@@ -166,10 +166,12 @@ always @(posedge clk) begin
 		case(state)
 		FETCH: begin //Fetching Instruction and Decode
 				//Reading Reg Values
-				//$monitor("Fetching : Opcode: %6b, Instr Address : %32h",opcode,instr_address);
+				//monitor("Fetching : Opcode: %6b, Instr Address : %32h",opcode,instr_address);
 				instr <= instr_readdata;
 				data_read <= 0;
                	data_write <= 0;
+				Jump <= 0;
+				Branch <= 0;
                	write_on_next <= 0;
                	reg_write_enable <= 0;
                	HiLoSrc <= 0;
@@ -212,7 +214,7 @@ always @(posedge clk) begin
 	               		
 	   
 	               		 F_JR: begin
-	               		 		//$monitor("Register Rs: %32h Read data rs: %32h",read_index_rs, read_data_rs);
+	               		 		//monitor("Register Rs: %32h Read data rs: %32h",read_index_rs, read_data_rs);
 	               		 		Branch_Addr <= read_data_rs;
 	               		 		Jump <= 1;
 	               		 		end
@@ -309,9 +311,10 @@ always @(posedge clk) begin
                			Branch <= sig_Branch;
                		end 
                		OP_BLTZ, OP_BGTZ, OP_BLEZ: begin
-						   //$monitor("Branching:", sig_Branch);
+						   //$monitor(read_index_rs);
                			Branch <= sig_Branch;
                			if(linkNext) begin
+							   //$monitor("pc_next = %32h", pc_next);
                				Mem_Reg_Select <= 1;
                				write_index <= 31;
                				write_on_next <= 1;
@@ -358,8 +361,8 @@ always @(posedge clk) begin
 						if(HiLoSrc) begin
 							reg_write_data <= HiLoOut;
 						end
-						else begin
-						reg_write_data <= Alu_Out;
+						else if (!Branch && !Jump) begin
+							reg_write_data <= Alu_Out;
 						end
 					end
 					// Reg -> Memory
