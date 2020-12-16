@@ -56,7 +56,6 @@ always @(posedge clk) begin
             prodreg <= $unsigned(a) * $unsigned(b);
             hi[31:0] <= prodreg[63:32];
             lo[31:0] <= prodreg[31:0];
-        
         end
     
     6'b011000:
@@ -73,7 +72,6 @@ always @(posedge clk) begin
             end
             hi[31:0] <= prodreg[63:32];
             lo[31:0] <= prodreg[31:0];
-        
         end
     
     6'b011011: //need multi-cycle iterative 
@@ -126,7 +124,7 @@ always @(posedge clk) begin
             if($signed(a) < 0 && $signed(b) < 0) begin //both zero, negflag = 0, take twos complement of both
                 dd <= ~a + 1;
                 ds <= (~b +1) << 33;
-                r <= (~a+1);
+                r <= 64'h0000FFFF&(~a+1);
                 prevR<= (~a+1);
                 negFlag <= 0;
                 negDividend <= 1;
@@ -192,6 +190,9 @@ always @(posedge clk) begin
         else if(div_finish) begin
                 if(negDividend) begin
                     if(a[31] == r[31]) begin
+                        hi <= r[31:0];
+                    end
+                    else begin
                         hi <= ~r[31:0]+1;
                     end
                 end
