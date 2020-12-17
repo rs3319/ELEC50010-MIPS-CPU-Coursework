@@ -38,8 +38,9 @@ module mips_cpu_hilo(
 //mfhi, mflo in harvard cpu file
 always @(posedge clk) begin
 	//$monitor("lo: ",lo);
-
+    //$monitor(opcode);
     case(opcode)
+
     6'b010001: 
         begin //mthi
             hi <= a;
@@ -60,18 +61,21 @@ always @(posedge clk) begin
     
     6'b011000:
         begin //mult
-            for(i = 0; i < 32; i = i + 1) begin
-                temp <= a * b[i];
-                toadd <= temp<<i;
-                if(i == 0) begin
-                    prodreg <= toadd;
-                end
-                else begin
-                    prodreg <= prodreg + toadd;
-                end
-            end
-            hi[31:0] <= prodreg[63:32];
-            lo[31:0] <= prodreg[31:0];
+            //prodreg = 0;
+            //for(i = 0; i < 32; i = i + 1) begin
+            //$monitor("Prodreg :",prodreg,b, a);
+            //    temp <= a * b[i];
+            //    toadd <= temp<<i;
+            //    if(i == 0) begin
+            //        prodreg <= (b[i] ? a : 0)<<i;
+            //    end
+            //    else begin
+            //        prodreg <= prodreg + (b[i] ? a : 0)<<i;
+            //    end
+            //end
+            prodreg <= $signed(a) * $signed(b);
+            hi <= prodreg[63:32];
+            lo <= prodreg[31:0];
         end
     
     6'b011011: //need multi-cycle iterative 

@@ -3,7 +3,7 @@
 DIRECTORY="$1"
 TestInstr="$2"
 if [ ${TestInstr} != "" ]
-	then
+then
 	TC="test/Assembly/${TestInstr}-*.hex.txt"
 else
 	TC="test/Assembly/*.hex.txt"	
