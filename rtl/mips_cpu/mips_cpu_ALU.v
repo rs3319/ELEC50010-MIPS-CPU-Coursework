@@ -106,7 +106,7 @@ module mips_cpu_ALU(
 			case(opcode)
 					
 				6'h9 : // addiu
-					ALU_result = rs_content + zeroExtend;
+					ALU_result = rs_content + signExtend;
 					
 				6'b001100 : // andi
 					ALU_result = rs_content & zeroExtend;
