@@ -244,6 +244,7 @@ always @(posedge clk) begin
 	               		 			write_on_next <= 1;
 	               		 			HiLoSel <= 0;
 	               		 			HiLoSrc <= 1;
+	               		 			//$monitor("Debug: Hi : %32h Lo : %32h",HiOut,LoOut);
 	               		 		end
 	               		 F_DIV, F_DIVU:
 	               		 		begin
