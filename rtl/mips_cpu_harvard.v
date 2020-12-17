@@ -333,7 +333,7 @@ always @(posedge clk) begin
 					carryReg <= carryNext;	
 					// Memory/Reg -> Reg
 					if(!Mem_Reg_Select) begin
-						//$monitor(data_address);
+
 						case(opcode)
 							OP_LW: begin	
 								reg_write_data <= data_readdata;
@@ -351,7 +351,8 @@ always @(posedge clk) begin
 								reg_write_data <= {{24{1'b0}},data_readdata[7:0]};
 							end
 							OP_LWL: begin
-								reg_write_data <= (read_data_rt >> ((lw_shift+1) << 3)) + ((data_readdata << ((3-lw_shift) << 3)));
+								//$monitor("%32h, %32h",read_data_rt, opcode);
+								reg_write_data <= (read_data_rt & (32'hFFFFFFFF >> ((lw_shift+1) << 3))) + ((data_readdata << ((3-lw_shift) << 3)));
 							end
 							OP_LWR: begin
 								reg_write_data <= (read_data_rt & (32'hFFFFFFFF << ((4-lw_shift) << 3))) + (data_readdata >> ((lw_shift) << 3));
