@@ -108,9 +108,9 @@ module mips_cpu_ALU(
 				6'h9 : // addiu
 					ALU_result = rs_content + zeroExtend;
 					
-				6'b001000 : // andi
-					ALU_result = rs_content & signExtend;
-					
+				6'b001100 : // andi
+					ALU_result = rs_content & zeroExtend;
+
 				6'h4 : // beq
 					begin
 						ALU_result = rs_content - rt_content;
