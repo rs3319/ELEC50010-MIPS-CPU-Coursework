@@ -74,6 +74,7 @@ module mips_cpu_ALU(
 				
 				6'h04 : //sllv	
 					ALU_result = (rt_content << rs_content[4:0]);
+					
 				6'b101010: //slt
 					begin
 						if($signed(rs_content) < $signed(rt_content)) begin
@@ -224,7 +225,7 @@ module mips_cpu_ALU(
 				
 				6'b001011 : // sltiu
 					begin
-						if(rs_content < signExtend) begin
+						if($unsigned(rs_content) < $unsigned(signExtend)) begin
 							ALU_result = 1;
 						end else begin
 							ALU_result = 0;
