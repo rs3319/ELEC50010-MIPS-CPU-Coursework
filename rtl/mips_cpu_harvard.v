@@ -54,7 +54,7 @@ typedef enum logic[5:0] {
 typedef enum logic[5:0]{
 	// add identifiers for alu functions
 	F_SLL = 6'b000000,
-	F_SRL = 6'b000001,
+	F_SRL = 6'b000010,
 	F_SRA = 6'b000011,
 	F_SLLV = 6'b000100,
 	F_SRLV = 6'b000110,
@@ -276,7 +276,7 @@ always @(posedge clk) begin
 	               		 	write_on_next <= 1;
 	               		 	Branch_Addr <= {pc_next[31:28],instr[25:0],2'b00};
 	               		 end
-               		OP_ADDIU, OP_ANDI, OP_LUI, OP_ORI, OP_SLTI, OP_SLTIU:
+               		OP_ADDIU, OP_ANDI, OP_LUI, OP_ORI, OP_XORI, OP_SLTI, OP_SLTIU:
                			begin
                				Mem_Reg_Select <= 1;
                		 		write_on_next <= 1;
@@ -415,6 +415,7 @@ always @(posedge clk) begin
 							reg_write_data <= HiLoOut;
 						end
 						else if (!Branch && !Jump) begin
+							//$monitor("%32h, %32h",opcode, Alu_Out);
 							reg_write_data <= Alu_Out;
 						end
 					end
