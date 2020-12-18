@@ -65,7 +65,7 @@ module mips_cpu_ALU(
 					
 				6'h02 : //srl
 					ALU_result = (rt_content >> shamt);
-				
+					
 				6'h06 : //srlv
 					ALU_result = (rt_content >> rs_content[4:0]);
 			
@@ -113,6 +113,7 @@ module mips_cpu_ALU(
 
 				6'h4 : // beq
 					begin
+						//$monitor(rs_content, rt_content);
 						ALU_result = rs_content - rt_content;
 						if(ALU_result == 0) begin
 							sig_branch = 1'b1;
@@ -207,8 +208,10 @@ module mips_cpu_ALU(
 				6'b001101 : // ori
 					ALU_result = rs_content | zeroExtend;
 
-				6'b001110 : // xori
+				6'b001110 : // xori 
+				begin 	
 					ALU_result = rs_content ^ zeroExtend;
+				end  
 				
 				6'b001010 : // slti
 					begin
