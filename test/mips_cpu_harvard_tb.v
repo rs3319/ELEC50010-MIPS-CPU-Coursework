@@ -63,7 +63,7 @@ module mips_cpu_harvard_tb;
 		//$display("Finished Running");
 		//scan_file = $fscanf(REF_FILE, "%d\n", OUTPUT);
 		if(register_v0 != REF_OUT) begin
-			$fatal(1,"Reference Outputs do not match Testbench Output: %d, %d", register_v0,REF_OUT);
+			$fatal(1,"Reference Outputs do not match Testbench Output: %h, %h", register_v0,REF_OUT);
 		end
 		$finish;
 	end

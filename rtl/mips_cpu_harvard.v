@@ -299,6 +299,18 @@ always @(posedge clk) begin
                			  write_on_next <= 1;
                			  Mem_Reg_Select <= 0;
                		end
+               		OP_SB: begin
+               				data_address <= (read_data_rs + {{16{instr[15]}},instr[15:0]}) & 32'hFFFFFFFC;
+               				lw_shift <= (((read_data_rs + instr[15:0]) & 32'h3));
+               				data_read <= 1;
+               				data_write <= 0;
+               			   end
+               		OP_SH: begin
+							data_address <= (read_data_rs + {{16{instr[15]}},instr[15:0]}) & 32'hFFFFFFFC;
+               				lw_shift <= (((read_data_rs + instr[15:0]) & 32'h3)) >> 1;
+               				data_read <= 1;
+               				data_write <= 0;               				
+               			   end
                		OP_SW: begin
 
                			  data_address <= read_data_rs + {{16{instr[15]}},instr[15:0]};
@@ -332,6 +344,44 @@ always @(posedge clk) begin
 				if(!DivFlag) begin
 					//$monitor("3 : Instruction: %32h, Instr Address : %32h",instr_readdata,instr_address);
 					carryReg <= carryNext;	
+					if(opcode == OP_SB) begin
+						case(lw_shift)
+							2'b00: begin
+								data_writedata <= (32'hFFFFFF00 & data_readdata) | read_data_rt[7:0];
+								data_write <= 1;
+								data_read <= 0;
+									end
+							2'b01: begin
+								data_writedata <= (32'hFFFF00FF & data_readdata) | read_data_rt[7:0] << 8;
+								data_write <= 1;
+								data_read <= 0;
+									end
+							2'b10: begin
+								data_writedata <= (32'hFF00FFFF & data_readdata) | read_data_rt[7:0] << 16;
+								data_write <= 1;
+								data_read <= 0;
+									end
+							2'b11: begin
+								data_writedata <= (32'h00FFFFFF & data_readdata) | read_data_rt[7:0] << 24;
+								data_write <= 1;
+								data_read <= 0;
+									end
+						endcase
+					end
+					else if(opcode == OP_SH) begin
+						case(lw_shift)
+							1'b0: begin
+									data_writedata <= (32'hFFFF0000 & data_readdata) | read_data_rt[15:0];
+									data_write <= 1;
+									data_read <= 0;
+								  end
+							1'b1: begin
+									data_writedata <= (32'h0000FFFF & data_readdata) | read_data_rt[15:0] << 16;
+									data_write <= 1;
+									data_read <= 0;
+								  end
+						endcase
+					end
 					// Memory/Reg -> Reg
 					if(!Mem_Reg_Select) begin
 
