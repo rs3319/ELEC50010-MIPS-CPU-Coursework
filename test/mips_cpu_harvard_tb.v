@@ -43,18 +43,21 @@ module mips_cpu_harvard_tb;
 		@(posedge clk);
 		#1
 		assert(!(data_read || data_write));
+		else $fatal(4,"Trying to read/write while being reset");
 
 		rst <= 0;
 		@(posedge clk);
 		assert(active==1);
-		else $display("CPU signal active != 1 after reset");
+		else $fatal(3,"CPU signal active != 1 after reset");
 
 
 		while(active) begin
 		 @(posedge clk);
 		 assert(!(data_read && data_write));
+		 else $fatal(5,"Data_read and data_write both high at same time");
 		 if(data_write) begin
 		 	assert(instr_address != data_address);
+		 	else $fatal(6,"Instr_address == Data_Address Conflict");
 		 end
 		 //$display("Tick");
 		 //$display("instr_address : %32h, instr_readdata : %32h data_address: %32h data_writedata: %32h data_readdata : %32h read: %1b write: %1b",instr_address,instr_readdata,data_address,data_writedata,data_readdata,data_read,data_write);
