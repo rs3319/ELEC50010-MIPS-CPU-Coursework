@@ -56,9 +56,11 @@ module mips_cpu_ALU(
 				6'h07 : //srav
 					begin
 						temp = rt_content;
-						for(i = 0; i < rs_content[4:0]; i = i + 1) begin
-							temp = {temp[31],temp[31:1]};
-						end
+						if (rs_content[4:0] != 0) begin
+							for(i = 0; i < rs_content[4:0]; i = i + 1) begin
+								temp = {temp[31],temp[31:1]};
+							end 
+						end 
 
 					ALU_result = temp;
 					end
